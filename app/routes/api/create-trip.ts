@@ -85,7 +85,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             appwriteConfig.tripCollectionId,
             ID.unique(),
             {
-                tripDetails: JSON.stringify(trip),
+                tripDetail: JSON.stringify(trip),
                 createdAt: new Date().toISOString(),
                 imageUrls,
                 userId,
