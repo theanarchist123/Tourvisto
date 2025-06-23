@@ -29,7 +29,6 @@ export function parseMarkdownToJson(markdownText: string): unknown | null {
 export function parseTripData(jsonString: string | undefined | null): Trip | null {
     // Validate input before attempting to parse
     if (!jsonString || typeof jsonString !== 'string' || jsonString.trim() === '') {
-        console.warn("parseTripData: Invalid input provided:", jsonString);
         return null;
     }
 
