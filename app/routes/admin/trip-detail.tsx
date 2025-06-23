@@ -125,12 +125,12 @@ const TripDetail = ({ loaderData }: Route.ComponentProps) => {
                 <section className="title">
                     <article>
                         <h3>
-                            {duration}-Day {country} {travelStyle} Trip
+                            {duration ? `${duration}-Day` : ''} {country || ''} {travelStyle || ''} Trip
                         </h3>
-                        <p>{budget}, {groupType} and {interests}</p>
+                        <p>{budget || ''}{budget && groupType ? ', ' : ''}{groupType || ''}{(budget || groupType) && interests ? ' and ' : ''}{interests || ''}</p>
                     </article>
 
-                    <h2>{estimatedPrice}</h2>
+                    <h2>{estimatedPrice || 'Price not available'}</h2>
                 </section>
 
                 <p className="text-sm md:text-lg font-normal text-dark-400">{description}</p>
