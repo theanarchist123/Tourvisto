@@ -26,13 +26,19 @@ export function parseMarkdownToJson(markdownText: string): unknown | null {
     return null;
 }
 
-export function parseTripData(jsonString: string): Trip | null {
+export function parseTripData(jsonString: string | undefined | null): Trip | null {
+    // Validate input before attempting to parse
+    if (!jsonString || typeof jsonString !== 'string' || jsonString.trim() === '') {
+        console.warn("parseTripData: Invalid input provided:", jsonString);
+        return null;
+    }
+
     try {
         const data: Trip = JSON.parse(jsonString);
-
         return data;
     } catch (error) {
         console.error("Failed to parse trip data:", error);
+        console.error("Input was:", jsonString);
         return null;
     }
 }
