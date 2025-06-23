@@ -14,11 +14,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
         getAllTrips(4, 0)
     ]);
 
-    // Debug logging to see what we're getting from the database
-    console.log('Loaded trip data:', trip);
-    console.log('Trip has tripDetail:', !!trip?.tripDetail);
-    console.log('Trip tripDetail value:', trip?.tripDetail);
-
     return {
         trip,
         allTrips: trips.allTrips.map(({ $id, tripDetail, imageUrls }) => {
