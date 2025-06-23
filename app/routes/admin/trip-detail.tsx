@@ -56,16 +56,18 @@ const TripDetail = ({ loaderData }: Route.ComponentProps) => {
 
             <section className="container wrapper-md">
                 <header>
-                    <h1 className="p-40-semibold text-dark-100">{name}</h1>
+                    <h1 className="p-40-semibold text-dark-100">{name || 'Trip Details'}</h1>
                     <div className="flex items-center gap-5">
-                <InfoPill
-                    text={`${duration} day plan`}
-                    image="/assets/icons/calendar.svg"
-                />
+                {duration && (
+                    <InfoPill
+                        text={`${duration} day plan`}
+                        image="/assets/icons/calendar.svg"
+                    />
+                )}
 
                 <InfoPill
                     text={itinerary?.slice(0,4)
-                        .map((item) => item.location).join(', ') || ''}
+                        .map((item) => item.location).join(', ') || 'Loading...'}
                     image="/assets/icons/location-mark.svg"
                 />
                     </div>
