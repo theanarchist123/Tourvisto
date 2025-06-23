@@ -34,7 +34,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 const TripDetail = ({ loaderData }: Route.ComponentProps) => {
     const imageUrls = loaderData?.trip?.imageUrls || [];
-    const tripData = parseTripData(loaderData?.trip?.tripDetails);
+    const tripData = parseTripData(loaderData?.trip?.tripDetail);
 
     const {
         name, duration, itinerary, travelStyle,
