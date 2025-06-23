@@ -21,8 +21,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
     return {
         trip,
-        allTrips: trips.allTrips.map(({ $id, tripDetails, imageUrls }) => {
-            const parsedTripData = parseTripData(tripDetails);
+        allTrips: trips.allTrips.map(({ $id, tripDetail, imageUrls }) => {
+            const parsedTripData = parseTripData(tripDetail);
             return {
                 id: $id,
                 ...(parsedTripData || {}), // Use empty object if parsing fails
