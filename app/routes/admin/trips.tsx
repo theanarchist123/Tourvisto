@@ -15,9 +15,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const { allTrips, total } = await getAllTrips(limit, offset);
 
     return {
-        trips: allTrips.map(({ $id, tripDetails, imageUrls }) => ({
+        trips: allTrips.map(({ $id, tripDetail, imageUrls }) => ({
             id: $id,
-            ...parseTripData(tripDetails),
+            ...parseTripData(tripDetail),
             imageUrls: imageUrls ?? []
         })),
         total
