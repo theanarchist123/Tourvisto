@@ -16,11 +16,14 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
     return {
         trip,
-        allTrips: trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
-            id: $id,
-            ...parseTripData(tripDetails),
-            imageUrls: imageUrls ?? []
-        }))
+        allTrips: trips.allTrips.map(({ $id, tripDetails, imageUrls }) => {
+            const parsedTripData = parseTripData(tripDetails);
+            return {
+                id: $id,
+                ...(parsedTripData || {}), // Use empty object if parsing fails
+                imageUrls: imageUrls ?? []
+            };
+        })
     }
 }
 
