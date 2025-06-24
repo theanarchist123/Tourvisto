@@ -9,9 +9,25 @@ export const appwriteConfig = {
     tripCollectionId: import.meta.env.VITE_APPWRITE_TRIPS_COLLECTION_ID,
 }
 
-const client = new Client()
+const client = new Client();
+
+// Initialize the client
+client
     .setEndpoint(appwriteConfig.endpointUrl)
-    .setProject(appwriteConfig.projectId)
+    .setProject(appwriteConfig.projectId);
+
+// Create a guest session for public access
+const createAnonymousSession = async () => {
+    try {
+        const tempAccount = new Account(client);
+        await tempAccount.createAnonymousSession();
+    } catch (error) {
+        console.error("Error creating anonymous session:", error);
+    }
+};
+
+// Initialize anonymous session
+createAnonymousSession();
 
 const account = new Account(client);
 const database = new Databases(client);
