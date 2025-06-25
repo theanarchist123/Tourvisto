@@ -18,7 +18,27 @@ export const getAllTrips = async (limit: number, offset: number) => {
         total: allTrips.total,
     }
 }
-
+export const getPublicTrips = async (limit: number, offset: number) => {
+    try {
+        const response = await database.listDocuments(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            import.meta.env.VITE_APPWRITE_TRIPS_COLLECTION_ID,
+            [
+                Query.limit(limit),
+                Query.offset(offset),
+                Query.orderDesc('$createdAt')
+            ]
+        );
+        
+        return {
+            allTrips: response.documents,
+            total: response.total
+        };
+    } catch (error) {
+        console.error('Error fetching public trips:', error);
+        throw error;
+    }
+};
 export const getTripById = async (tripId: string) => {
     const trip = await database.getDocument(
         appwriteConfig.databaseId,

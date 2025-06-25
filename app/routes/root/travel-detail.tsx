@@ -1,5 +1,5 @@
 import {Link, type LoaderFunctionArgs} from "react-router";
-import {getAllTrips, getTripById} from "~/appwrite/trips";
+import {getAllTrips, getPublicTrips, getTripById} from "~/appwrite/trips";
 import type { Route } from './+types/travel-detail';
 import {cn, getFirstWord, parseTripData} from "~/lib/utils";
 import {Header, InfoPill, TripCard} from "../../../components";
@@ -9,18 +9,32 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     const { tripId } = params;
     if(!tripId) throw new Error ('Trip ID is required');
 
-    const [trip, trips] = await Promise.all([
-        getTripById(tripId),
-        getAllTrips(4, 0)
-    ]);
+    try {
+        // Get the main trip first
+        const trip = await getTripById(tripId);
+        
+        // Try to get other trips without authentication
+        let allTrips = [];
+        try {
+            // Use getPublicTrips instead of getAllTrips to avoid auth issues
+            const tripsResult = await getPublicTrips(4, 0);
+            allTrips = tripsResult.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
+                id: $id,
+                ...parseTripData(tripDetails),
+                imageUrls: imageUrls ?? []
+            }));
+        } catch (tripsError) {
+            console.warn('Could not fetch popular trips:', tripsError.message);
+            // Continue without popular trips
+        }
 
-    return {
-        trip,
-        allTrips: trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
-            id: $id,
-            ...parseTripData(tripDetails),
-            imageUrls: imageUrls ?? []
-        }))
+        return {
+            trip,
+            allTrips
+        }
+    } catch (error) {
+        console.error('Error fetching trip details:', error);
+        throw new Response("Trip not found", { status: 404 });
     }
 }
 
@@ -41,12 +55,26 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
         { text: groupType, bg: '!bg-primary-50 !text-primary-500' },
         { text: budget, bg: '!bg-success-50 !text-success-700' },
         { text: interests, bg: '!bg-navy-50 !text-navy-500' },
-    ]
+    ].filter(item => item.text); // Filter out empty values
 
     const visitTimeAndWeatherInfo = [
         { title: 'Best Time to Visit:', items: bestTimeToVisit},
         { title: 'Weather:', items: weatherInfo}
-    ]
+    ].filter(section => section.items && section.items.length > 0);
+
+    if (!tripData) {
+        return (
+            <main className="travel-detail pt-40 wrapper">
+                <div className="text-center">
+                    <h1>Trip not found</h1>
+                    <Link to="/" className="back-link">
+                        <img src="/assets/icons/arrow-left.svg" alt="back icon" />
+                        <span>Go back</span>
+                    </Link>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="travel-detail pt-40 wrapper">
@@ -55,7 +83,6 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     <img src="/assets/icons/arrow-left.svg" alt="back icon" />
                     <span>Go back</span>
                 </Link>
-
 
             <section className="container wrapper-md">
                 <header>
@@ -74,54 +101,58 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     </div>
                 </header>
 
-                <section className="gallery">
-                    {imageUrls.map((url: string, i: number) => (
-                        <img
-                            src={url}
-                            key={i}
-                            className={cn('w-full rounded-xl object-cover', i === 0
-                                ? 'md:col-span-2 md:row-span-2 h-[330px]'
-                                : 'md:row-span-1 h-[150px]')}
-                        />
-                    ))}
-                </section>
-
-                <section className="flex gap-3 md:gap-5 items-center flex-wrap">
-                    <ChipListComponent id="travel-chip">
-                        <ChipsDirective>
-                            {pillItems.map((pill, i) => (
-                                <ChipDirective
-                                    key={i}
-                                    text={getFirstWord(pill.text)}
-                                    cssClass={`${pill.bg} !text-base !font-medium !px-4`}
-                                />
-                            ))}
-                        </ChipsDirective>
-                    </ChipListComponent>
-
-                    <ul className="flex gap-1 items-center">
-                        {Array(5).fill('null').map((_, index) => (
-                            <li key={index}>
-                                <img
-                                    src="/assets/icons/star.svg"
-                                    alt="star"
-                                    className="size-[18px]"
-                                />
-                            </li>
+                {imageUrls.length > 0 && (
+                    <section className="gallery">
+                        {imageUrls.map((url: string, i: number) => (
+                            <img
+                                src={url}
+                                key={i}
+                                className={cn('w-full rounded-xl object-cover', i === 0
+                                    ? 'md:col-span-2 md:row-span-2 h-[330px]'
+                                    : 'md:row-span-1 h-[150px]')}
+                            />
                         ))}
+                    </section>
+                )}
 
-                        <li className="ml-1">
-                            <ChipListComponent>
-                                <ChipsDirective>
+                {pillItems.length > 0 && (
+                    <section className="flex gap-3 md:gap-5 items-center flex-wrap">
+                        <ChipListComponent id="travel-chip">
+                            <ChipsDirective>
+                                {pillItems.map((pill, i) => (
                                     <ChipDirective
-                                        text="4.9/5"
-                                        cssClass="!bg-yellow-50 !text-yellow-700"
+                                        key={i}
+                                        text={getFirstWord(pill.text)}
+                                        cssClass={`${pill.bg} !text-base !font-medium !px-4`}
                                     />
-                                </ChipsDirective>
-                            </ChipListComponent>
-                        </li>
-                    </ul>
-                </section>
+                                ))}
+                            </ChipsDirective>
+                        </ChipListComponent>
+
+                        <ul className="flex gap-1 items-center">
+                            {Array(5).fill('null').map((_, index) => (
+                                <li key={index}>
+                                    <img
+                                        src="/assets/icons/star.svg"
+                                        alt="star"
+                                        className="size-[18px]"
+                                    />
+                                </li>
+                            ))}
+
+                            <li className="ml-1">
+                                <ChipListComponent>
+                                    <ChipsDirective>
+                                        <ChipDirective
+                                            text="4.9/5"
+                                            cssClass="!bg-yellow-50 !text-yellow-700"
+                                        />
+                                    </ChipsDirective>
+                                </ChipListComponent>
+                            </li>
+                        </ul>
+                    </section>
+                )}
 
                 <section className="title">
                     <article>
@@ -136,24 +167,26 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
 
                 <p className="text-sm md:text-lg font-normal text-dark-400">{description}</p>
 
-                <ul className="itinerary">
-                    {itinerary?.map((dayPlan: DayPlan, index: number) => (
-                        <li key={index}>
-                            <h3>
-                                Day {dayPlan.day}: {dayPlan.location}
-                            </h3>
+                {itinerary && itinerary.length > 0 && (
+                    <ul className="itinerary">
+                        {itinerary.map((dayPlan: DayPlan, index: number) => (
+                            <li key={index}>
+                                <h3>
+                                    Day {dayPlan.day}: {dayPlan.location}
+                                </h3>
 
-                            <ul>
-                                {dayPlan.activities.map((activity, index: number) => (
-                                    <li key={index}>
-                                        <span className="flex-shring-0 p-18-semibold">{activity.time}</span>
-                                        <p className="flex-grow">{activity.description}</p>
-                                    </li>
-                                ))}
-                            </ul>
-                        </li>
-                    ))}
-                </ul>
+                                <ul>
+                                    {dayPlan.activities.map((activity, index: number) => (
+                                        <li key={index}>
+                                            <span className="flex-shring-0 p-18-semibold">{activity.time}</span>
+                                            <p className="flex-grow">{activity.description}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 {visitTimeAndWeatherInfo.map((section) => (
                     <section key={section.title} className="visit">
@@ -171,35 +204,40 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     </section>
                 ))}
 
-                <a href={paymentLink} className="flex">
-                    <ButtonComponent className="button-class" type="submit">
-                        <span className="p-16-semibold text-white">
-                            Pay to join the trip
-                        </span>
-                        <span className="price-pill">{estimatedPrice}</span>
-                    </ButtonComponent>
-                </a>
+                {paymentLink && (
+                    <a href={paymentLink} className="flex">
+                        <ButtonComponent className="button-class" type="submit">
+                            <span className="p-16-semibold text-white">
+                                Pay to join the trip
+                            </span>
+                            <span className="price-pill">{estimatedPrice}</span>
+                        </ButtonComponent>
+                    </a>
+                )}
 
             </section>
             </div>
 
-            <section className="flex flex-col gap-6">
-                <h2 className="p-24-semibold text-dark-100">Popular Trips</h2>
+            {/* Only show Popular Trips section if we have trips data */}
+            {allTrips.length > 0 && (
+                <section className="flex flex-col gap-6">
+                    <h2 className="p-24-semibold text-dark-100">Popular Trips</h2>
 
-                <div className="trip-grid">
-                    {allTrips.map((trip) => (
-                        <TripCard
-                            key={trip.id}
-                            id={trip.id}
-                            name={trip.name}
-                            imageUrl={trip.imageUrls[0]}
-                            location={trip.itinerary?.[0]?.location ?? ""}
-                            tags={[trip.interests, trip.travelStyle]}
-                            price={trip.estimatedPrice}
-                        />
-                    ))}
-                </div>
-            </section>
+                    <div className="trip-grid">
+                        {allTrips.map((trip) => (
+                            <TripCard
+                                key={trip.id}
+                                id={trip.id}
+                                name={trip.name}
+                                imageUrl={trip.imageUrls?.[0]}
+                                location={trip.itinerary?.[0]?.location ?? ""}
+                                tags={[trip.interests, trip.travelStyle].filter(Boolean)}
+                                price={trip.estimatedPrice}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
         </main>
     )
 }
