@@ -1,7 +1,6 @@
 import { type ActionFunctionArgs } from "react-router";
 import { stripe } from "~/lib/stripe";
-import { getPublicTripById } from "~/appwrite/public-trips";
-import { parseTripData } from "~/lib/utils";
+import { database } from "~/appwrite/client";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
     try {
@@ -12,51 +11,46 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             throw new Error('Stripe is not properly initialized');
         }
 
-        const { tripId } = await request.json();
+        const { bookingId, amount, currency = 'inr', description, metadata = {} } = await request.json();
         
-        if (!tripId) {
-            return new Response(JSON.stringify({ error: "Trip ID is required" }), {
+        if (!bookingId || !amount) {
+            return new Response(JSON.stringify({ error: "Booking ID and amount are required" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
             });
         }
 
-        console.log('Fetching trip details for ID:', tripId);
+        console.log('Fetching booking details for ID:', bookingId);
 
-        // Get trip details from database
-        const trip = await getPublicTripById(tripId);
-        if (!trip) {
-            return new Response(JSON.stringify({ error: "Trip not found" }), {
+        // Get booking details from database
+        const booking = await database.getDocument(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID!,
+            import.meta.env.VITE_APPWRITE_BOOKINGS_COLLECTION_ID!,
+            bookingId
+        );
+
+        if (!booking) {
+            return new Response(JSON.stringify({ error: "Booking not found" }), {
                 status: 404,
-                headers: { "Content-Type": "application/json" }
-            });
-        }
-
-        const tripData = parseTripData(trip.tripDetail);
-        if (!tripData) {
-            return new Response(JSON.stringify({ error: "Invalid trip data" }), {
-                status: 400,
                 headers: { "Content-Type": "application/json" }
             });
         }
 
         console.log('Creating Stripe checkout session...');
 
-        // Parse price and convert to cents (minimum $1 for Stripe)
-        let priceString = tripData.estimatedPrice?.replace(/[^0-9.]/g, '') || '1';
-        let priceAmount = Math.max(Math.round(parseFloat(priceString) * 100), 100); // Minimum $1
+        // Convert amount to cents for Stripe (minimum $1 or ₹1)
+        const priceAmount = Math.max(Math.round(amount * 100), 100);
 
-        // Create Stripe Checkout Session with inline price data (simpler and more test-friendly)
+        // Create Stripe Checkout Session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
                 {
                     price_data: {
-                        currency: 'usd',
+                        currency: currency.toLowerCase(),
                         product_data: {
-                            name: `🏖️ ${tripData.name || 'Amazing Travel Package'}`,
-                            description: `${tripData.description || 'A wonderful travel experience'} \n\n⚠️ TEST MODE - No real payment will be charged!`,
-                            images: trip.imageUrls?.slice(0, 3) || [],
+                            name: `✈️ Trip to ${booking.destination}`,
+                            description: `${description || `Trip booking for ${booking.numberOfMembers} member(s)`} \n\n⚠️ TEST MODE - No real payment will be charged!`,
                         },
                         unit_amount: priceAmount,
                     },
@@ -64,11 +58,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.VITE_BASE_URL?.replace(/\/$/, '')}/travel/${tripId}/success`,
-            cancel_url: `${process.env.VITE_BASE_URL?.replace(/\/$/, '')}/travel/${tripId}`,
+            success_url: `${import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')}/payment-success?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')}/payment/${bookingId}`,
             metadata: {
-                tripId: tripId,
-                testMode: 'true'
+                bookingId: bookingId,
+                travelerName: booking.travelerName,
+                email: booking.email,
+                testMode: 'true',
+                ...metadata
             },
         });
 

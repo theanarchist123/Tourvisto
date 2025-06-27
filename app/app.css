@@ -15,6 +15,24 @@
   font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Figtree", sans-serif !important;
 }
 
+/* Print styles for tickets */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  #ticket-content {
+    box-shadow: none !important;
+    border: 2px solid #333 !important;
+    margin: 0 !important;
+  }
+}
+
 @theme {
   --font-figtree: "Figtree", sans-serif;
   --font-inter: "Inter", sans-serif;

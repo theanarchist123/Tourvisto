@@ -4,6 +4,11 @@ export default [
     route('sign-in', 'routes/root/sign-in.tsx'),
     route('api/create-trip', 'routes/api/create-trip.ts'),
     route('api/create-payment', 'routes/api/create-payment.ts'),
+    route('api/create-booking', 'routes/api/create-booking.ts'),
+    route('api/confirm-booking', 'routes/api/confirm-booking.ts'),
+    route('api/send-ticket-email', 'routes/api/send-ticket-email.ts'),
+    route('api/booking/:bookingId', 'routes/api/booking.$bookingId.ts'),
+    route('api/trip/:tripId', 'routes/api/trip.$tripId.ts'),
     layout("routes/admin/admin-layout.tsx", [
         route('dashboard', 'routes/admin/dashboard.tsx'),
         route('all-users', 'routes/admin/all-users.tsx'),
@@ -14,6 +19,9 @@ export default [
     layout('routes/root/page-layout.tsx', [
         index('routes/root/travel-page.tsx'),
         route('/travel/:tripId', 'routes/root/travel-detail.tsx'),
-        route('/travel/:tripId/success', 'routes/root/payment-success.tsx'),
+        route('/book-trip/:tripId', 'routes/root/book-trip.tsx'),
+        route('/payment/:bookingId', 'routes/root/payment.tsx'),
+        route('/ticket/:bookingId', 'routes/root/ticket.$bookingId.tsx'),
+        route('/payment-success', 'routes/root/payment-success.tsx'),
     ])
 ] satisfies RouteConfig;

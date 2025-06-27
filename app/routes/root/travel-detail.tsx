@@ -51,54 +51,14 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     } = tripData || {};
     const allTrips = loaderData.allTrips as Trip[] | [];
 
-    const handlePayment = async () => {
+    const handleBookNow = () => {
         if (!tripId) {
             alert('Trip ID not found');
             return;
         }
-
-        setIsProcessingPayment(true);
         
-        try {
-            const response = await fetch('/api/create-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ tripId }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.url) {
-                // Show test mode message before redirecting
-                if (data.testMode) {
-                    const proceed = confirm(
-                        `🧪 TEST MODE PAYMENT\n\n` +
-                        `This is a demo payment using Stripe's test mode.\n` +
-                        `No real money will be charged!\n\n` +
-                        `Use test card: 4242 4242 4242 4242\n` +
-                        `Any future date, any CVC\n\n` +
-                        `Click OK to proceed to test checkout.`
-                    );
-                    
-                    if (!proceed) {
-                        setIsProcessingPayment(false);
-                        return;
-                    }
-                }
-                
-                // Redirect to Stripe Checkout
-                window.location.href = data.url;
-            } else {
-                alert(`Payment processing failed: ${data.error || 'Unknown error'}\n\n${data.message || ''}`);
-            }
-        } catch (error) {
-            console.error('Payment error:', error);
-            alert('Payment processing failed. This is just a demo - no real payment required!');
-        } finally {
-            setIsProcessingPayment(false);
-        }
+        // Navigate to booking page
+        navigate(`/book-trip/${tripId}`);
     };
 
     const pillItems = [
@@ -239,11 +199,10 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                 <div className="flex">
                     <ButtonComponent 
                         className="button-class" 
-                        onClick={handlePayment}
-                        disabled={isProcessingPayment}
+                        onClick={handleBookNow}
                     >
                         <span className="p-16-semibold text-white">
-                            {isProcessingPayment ? 'Processing...' : '🧪 Demo Payment (Test Mode)'}
+                            Book Now
                         </span>
                         <span className="price-pill">{estimatedPrice}</span>
                     </ButtonComponent>

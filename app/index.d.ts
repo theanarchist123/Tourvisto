@@ -74,13 +74,54 @@ declare interface Trip {
   payment_link: string;
 }
 
-declare interface TripCardProps {
+// Booking-related types
+declare interface TripFormData {
+  country: string;
+  travelStyle: string;
+  interest: string;
+  budget: string;
+  duration: number;
+  groupType: string;
+}
+
+declare interface BookingFormData {
+  travelerName: string;
+  email: string;
+  phone: string;
+  numberOfMembers: number;
+  departureAirport: string;
+  travelDate: Date | null;
+  memberNames: string[];
+}
+
+declare interface Booking {
+  $id: string;
+  tripId: string;
+  userId: string;
+  travelerName: string;
+  email: string;
+  phone: string;
+  numberOfMembers: number;
+  memberNames: string;
+  departureAirport: string;
+  destination: string;
+  travelDate: string;
+  flightId: string;
+  departureTime: string;
+  arrivalTime: string;
+  seatAssignments: string;
+  bookingStatus: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus: 'pending' | 'completed' | 'failed';
+  tripDetails: string;
+  totalAmount?: number;
+  tripPrice?: number;
+  createdAt: string;
+}
+
+declare interface CreateTripResponse {
   id: string;
-  name: string;
-  location: string;
-  imageUrl: string;
-  tags: string[];
-  price: string;
+  status: string;
+  message: string;
 }
 
 declare interface StatsCard {
@@ -113,10 +154,6 @@ declare interface DashboardStats {
   };
 }
 
-declare interface CreateTripResponse {
-  id?: string;
-}
-
 declare interface DestinationProps {
   containerClass?: string;
   bigCard?: boolean;
@@ -146,13 +183,4 @@ declare interface TripsInterest {
 declare interface InfoPillProps {
   text: string;
   image: string;
-}
-
-declare interface TripFormData {
-  country: string;
-  travelStyle: string;
-  interest: string;
-  budget: string;
-  duration: number;
-  groupType: string;
 }

@@ -3,11 +3,13 @@ import {Link, type LoaderFunctionArgs} from "react-router";
 import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import confetti from "canvas-confetti";
 import {LEFT_CONFETTI, RIGHT_CONFETTI} from "~/constants";
+import { confirmBookingAndSendEmail } from "~/lib/booking";
 
 // Define types inline
 namespace Route {
     export interface LoaderData {
-        tripId?: string;
+        bookingId?: string;
+        sessionId?: string;
     }
 
     export interface ComponentProps {
@@ -15,9 +17,24 @@ namespace Route {
     }
 }
 
-export async function loader ({ params }: LoaderFunctionArgs) {
+export async function loader ({ request }: LoaderFunctionArgs) {
+    const url = new URL(request.url);
+    const bookingId = url.searchParams.get('bookingId');
+    const sessionId = url.searchParams.get('session_id');
+    
+    // If we have a session_id, update the booking status to confirmed
+    if (sessionId && bookingId) {
+        try {
+            await confirmBookingAndSendEmail(bookingId, sessionId);
+            console.log('✅ Booking confirmed and email sent successfully');
+        } catch (error) {
+            console.error('Error confirming booking:', error);
+        }
+    }
+    
     return {
-        tripId: params.tripId
+        bookingId,
+        sessionId
     };
 }
 
@@ -36,17 +53,17 @@ const PaymentSuccess = ({ loaderData }: Route.ComponentProps) => {
 
                     <p>
                         <strong>This was a test payment - no real money was charged!</strong><br/><br/>
-                        Your trip booking simulation is complete. In a real scenario, you'd now have access to your travel itinerary and booking details. Get ready to explore & make memories! ✨
+                        Your trip booking is confirmed! Your ticket has been generated and will be sent to your email. Get ready to explore & make memories! ✨
                     </p>
                     
-                    <Link to={`/travel/${loaderData?.tripId}`} className="w-full">
+                    <Link to={`/ticket/${loaderData?.bookingId}`} className="w-full">
                         <ButtonComponent className="button-class !h-11 !w-full">
                             <img
                                 src="/assets/icons/itinerary-button.svg"
                                 className="size-5"
                             />
 
-                            <span className="p-16-semibold text-white">View trip details</span>
+                            <span className="p-16-semibold text-white">View Ticket</span>
                         </ButtonComponent>
                     </Link>
                     <Link to={'/'} className="w-full">
