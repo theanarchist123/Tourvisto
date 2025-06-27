@@ -10,95 +10,109 @@ import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {account} from "~/appwrite/client";
 import {useNavigate} from "react-router";
 
-interface Country {
-    name: string;
-    coordinates: number[];
-    value: string;
-    openStreetMap?: string;
-}
-
-interface TripFormData {
-    country: string;
-    travelStyle: string;
-    interest: string;
-    budget: string;
-    duration: number;
-    groupType: string;
-}
-
 export const loader = async () => {
-    // List of APIs to try in order
-    const apis = [
-        {
-            url: 'https://api.first.org/data/v1',
-            transform: (data: any) => {
-                // This API returns { data: { countryCode: { country: "Name" } } }
-                const countries = Object.entries(data.data).map(([code, info]: [string, any]) => ({
-                    name: getFlagEmoji(code) + ' ' + info.country,
-                    coordinates: [0, 0],
-                    value: info.country
-                }));
-                return countries;
-            }
-        },
-        {
-            url: 'https://restful-countries.com/v3/all',
-            transform: (data: any) => {
-                return data.map((country: any) => ({
-                    name: (country.flag || getFlagEmoji(country.cca2) || '') + ' ' + country.name.common,
-                    coordinates: country.latlng || [0, 0],
-                    value: country.name.common
-                }));
-            }
+    // Helper function to get emoji flag from country code
+    const getFlagEmoji = (countryCode: string): string => {
+        if (!countryCode || countryCode.length !== 2) return '🏳️';
+        
+        const codePoints = countryCode
+            .toUpperCase()
+            .split('')
+            .map(char => 127397 + char.charCodeAt(0));
+        return String.fromCodePoint(...codePoints);
+    };
+
+    // Comprehensive country data with proper flag mappings
+    const countryFlagMap: { [key: string]: string } = {
+        'United States': '🇺🇸',
+        'Japan': '🇯🇵',
+        'France': '🇫🇷',
+        'Italy': '🇮🇹',
+        'Spain': '🇪🇸',
+        'United Kingdom': '🇬🇧',
+        'Germany': '🇩🇪',
+        'Australia': '🇦🇺',
+        'Canada': '🇨🇦',
+        'Brazil': '🇧🇷',
+        'India': '🇮🇳',
+        'China': '🇨🇳',
+        'Russia': '🇷🇺',
+        'South Africa': '🇿🇦',
+        'Mexico': '🇲🇽',
+        'Thailand': '🇹🇭',
+        'Singapore': '🇸🇬',
+        'United Arab Emirates': '🇦🇪',
+        'Saudi Arabia': '🇸🇦',
+        'South Korea': '🇰🇷',
+        'Netherlands': '🇳🇱',
+        'Switzerland': '🇨🇭',
+        'Belgium': '🇧🇪',
+        'Austria': '🇦🇹',
+        'Portugal': '🇵🇹',
+        'Greece': '🇬🇷',
+        'Turkey': '🇹🇷',
+        'Egypt': '🇪🇬',
+        'Israel': '🇮🇱',
+        'Malaysia': '🇲🇾'
+    };
+
+    try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    ];
+        
+        const data = await response.json();
 
-    for (const api of apis) {
-        try {
-            console.log(`Trying to fetch countries from ${api.url}...`);
-            const response = await fetch(api.url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                console.error(`API Error for ${api.url}:`, response.status, response.statusText);
-                continue; // Try next API
-            }
-
-            const data = await response.json();
-            const formattedData = api.transform(data);
+        return data.map((country: any) => {
+            const countryName = country.name.common;
+            const flagEmoji = countryFlagMap[countryName] || getFlagEmoji(country.cca2) || '🏳️';
             
-            if (formattedData && formattedData.length > 0) {
-                console.log('Successfully loaded', formattedData.length, 'countries');
-                console.log('Sample country:', formattedData[0]);
-                return formattedData;
-            }
-        } catch (error) {
-            console.error(`Error with ${api.url}:`, error);
-            continue; // Try next API
-        }
+            return {
+                name: `${flagEmoji} ${countryName}`,
+                coordinates: country.latlng || [0, 0],
+                value: countryName,
+                openStreetMap: country.maps?.openStreetMaps,
+            };
+        });
+    } catch (error) {
+        console.error('Failed to fetch countries from API, using fallback data:', error);
+        
+        // Fallback country data with guaranteed working flags
+        return [
+            { name: '🇺🇸 United States', coordinates: [37.0902, -95.7129], value: 'United States', openStreetMap: 'https://www.openstreetmap.org/relation/148838' },
+            { name: '🇯🇵 Japan', coordinates: [36.2048, 138.2529], value: 'Japan', openStreetMap: 'https://www.openstreetmap.org/relation/382313' },
+            { name: '🇫🇷 France', coordinates: [46.2276, 2.2137], value: 'France', openStreetMap: 'https://www.openstreetmap.org/relation/1403916' },
+            { name: '🇮🇹 Italy', coordinates: [41.8719, 12.5674], value: 'Italy', openStreetMap: 'https://www.openstreetmap.org/relation/365331' },
+            { name: '🇪🇸 Spain', coordinates: [40.4637, -3.7492], value: 'Spain', openStreetMap: 'https://www.openstreetmap.org/relation/1311341' },
+            { name: '🇬🇧 United Kingdom', coordinates: [55.3781, -3.4360], value: 'United Kingdom', openStreetMap: 'https://www.openstreetmap.org/relation/62149' },
+            { name: '🇩🇪 Germany', coordinates: [51.1657, 10.4515], value: 'Germany', openStreetMap: 'https://www.openstreetmap.org/relation/51477' },
+            { name: '🇦🇺 Australia', coordinates: [-25.2744, 133.7751], value: 'Australia', openStreetMap: 'https://www.openstreetmap.org/relation/80500' },
+            { name: '🇨🇦 Canada', coordinates: [56.1304, -106.3468], value: 'Canada', openStreetMap: 'https://www.openstreetmap.org/relation/1428125' },
+            { name: '🇧🇷 Brazil', coordinates: [-14.2350, -51.9253], value: 'Brazil', openStreetMap: 'https://www.openstreetmap.org/relation/59470' },
+            { name: '🇮🇳 India', coordinates: [20.5937, 78.9629], value: 'India', openStreetMap: 'https://www.openstreetmap.org/relation/304716' },
+            { name: '🇨🇳 China', coordinates: [35.8617, 104.1954], value: 'China', openStreetMap: 'https://www.openstreetmap.org/relation/270056' },
+            { name: '🇷🇺 Russia', coordinates: [61.5240, 105.3188], value: 'Russia', openStreetMap: 'https://www.openstreetmap.org/relation/60189' },
+            { name: '🇿🇦 South Africa', coordinates: [-30.5595, 22.9375], value: 'South Africa', openStreetMap: 'https://www.openstreetmap.org/relation/87565' },
+            { name: '🇲🇽 Mexico', coordinates: [23.6345, -102.5528], value: 'Mexico', openStreetMap: 'https://www.openstreetmap.org/relation/114686' },
+            { name: '🇹🇭 Thailand', coordinates: [15.8700, 100.9925], value: 'Thailand', openStreetMap: 'https://www.openstreetmap.org/relation/2067731' },
+            { name: '🇸🇬 Singapore', coordinates: [1.3521, 103.8198], value: 'Singapore', openStreetMap: 'https://www.openstreetmap.org/relation/536780' },
+            { name: '🇦🇪 United Arab Emirates', coordinates: [23.4241, 53.8478], value: 'United Arab Emirates', openStreetMap: 'https://www.openstreetmap.org/relation/307763' },
+            { name: '🇸🇦 Saudi Arabia', coordinates: [23.8859, 45.0792], value: 'Saudi Arabia', openStreetMap: 'https://www.openstreetmap.org/relation/307584' },
+            { name: '🇰🇷 South Korea', coordinates: [35.9078, 127.7669], value: 'South Korea', openStreetMap: 'https://www.openstreetmap.org/relation/307756' },
+            { name: '🇳🇱 Netherlands', coordinates: [52.1326, 5.2913], value: 'Netherlands', openStreetMap: 'https://www.openstreetmap.org/relation/47796' },
+            { name: '🇨🇭 Switzerland', coordinates: [46.8182, 8.2275], value: 'Switzerland', openStreetMap: 'https://www.openstreetmap.org/relation/51701' },
+            { name: '🇧🇪 Belgium', coordinates: [50.5039, 4.4699], value: 'Belgium', openStreetMap: 'https://www.openstreetmap.org/relation/52411' },
+            { name: '🇦🇹 Austria', coordinates: [47.5162, 14.5501], value: 'Austria', openStreetMap: 'https://www.openstreetmap.org/relation/16239' },
+            { name: '🇵🇹 Portugal', coordinates: [39.3999, -8.2245], value: 'Portugal', openStreetMap: 'https://www.openstreetmap.org/relation/295480' },
+            { name: '🇬🇷 Greece', coordinates: [39.0742, 21.8243], value: 'Greece', openStreetMap: 'https://www.openstreetmap.org/relation/192307' },
+            { name: '🇹🇷 Turkey', coordinates: [38.9637, 35.2433], value: 'Turkey', openStreetMap: 'https://www.openstreetmap.org/relation/174737' },
+            { name: '🇪🇬 Egypt', coordinates: [26.0975, 30.0444], value: 'Egypt', openStreetMap: 'https://www.openstreetmap.org/relation/1473947' },
+            { name: '🇮🇱 Israel', coordinates: [31.0461, 34.8516], value: 'Israel', openStreetMap: 'https://www.openstreetmap.org/relation/1473946' },
+            { name: '🇲🇾 Malaysia', coordinates: [4.2105, 101.9758], value: 'Malaysia', openStreetMap: 'https://www.openstreetmap.org/relation/2108121' }
+        ];
     }
-
-    // If all APIs fail, return a minimal fallback list of major countries
-    console.log('All APIs failed, using fallback data');
-    return [
-        { name: getFlagEmoji('US') + ' United States', coordinates: [38, -97], value: 'United States' },
-        { name: getFlagEmoji('GB') + ' United Kingdom', coordinates: [54, -2], value: 'United Kingdom' },
-        { name: getFlagEmoji('FR') + ' France', coordinates: [46, 2], value: 'France' },
-        { name: getFlagEmoji('DE') + ' Germany', coordinates: [51, 9], value: 'Germany' },
-        { name: getFlagEmoji('JP') + ' Japan', coordinates: [36, 138], value: 'Japan' },
-        { name: getFlagEmoji('IN') + ' India', coordinates: [20, 77], value: 'India' },
-        { name: getFlagEmoji('CN') + ' China', coordinates: [35, 105], value: 'China' },
-    ];
-}
-
-// Helper function to get flag emoji from country code
-function getFlagEmoji(countryCode: string) {
-    if (!countryCode || countryCode.length !== 2) return '';
-    return String.fromCodePoint(...[...countryCode.toUpperCase()].map(c => 127397 + c.charCodeAt(0)));
 }
 
 const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
@@ -106,7 +120,7 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<TripFormData>({
-        country: countries[0]?.name || '',
+        country: countries?.[0]?.value || 'United States',
         travelStyle: '',
         interest: '',
         budget: '',
@@ -176,13 +190,13 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
     const countryData = countries.map((country) => ({
         text: country.name,
         value: country.value,
-    }))
+    }));
 
     const mapData = [
         {
             country: formData.country,
             color: '#EA382E',
-            coordinates: countries.find((c: Country) => c.name === formData.country)?.coordinates || []
+            coordinates: countries?.find((c: Country) => c.value === formData.country)?.coordinates || [0, 0]
         }
     ]
 
@@ -195,27 +209,24 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
                     <div>
                         <label htmlFor="country">
                             Country
-                        </label>                        <ComboBoxComponent
+                        </label>
+                        <select
                             id="country"
-                            dataSource={countryData}
-                            fields={{ text: 'text', value: 'value' }}
-                            placeholder="Select a Country"
-                            className="combo-box"
-                            change={(e: { value: string | undefined }) => {
-                                if(e.value) {
-                                    handleChange('country', e.value)
-                                }
+                            className="form-input"
+                            value={formData.country}
+                            onChange={(e) => handleChange('country', e.target.value)}
+                            style={{ 
+                                fontFamily: '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif',
+                                fontSize: '16px',
+                                lineHeight: '1.5'
                             }}
-                            allowFiltering
-                            filtering={(e) => {
-                                const query = e.text.toLowerCase();
-                                e.updateData(
-                                    countryData.filter((country) => 
-                                        country.text.toLowerCase().includes(query)
-                                    )
-                                );
-                            }}
-                        />
+                        >
+                            {countryData.map((country) => (
+                                <option key={country.value} value={country.value}>
+                                    {country.text}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div>

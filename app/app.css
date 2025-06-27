@@ -8,6 +8,13 @@
 @import "../node_modules/@syncfusion/ej2-react-dropdowns/styles/material.css";
 @import "tailwindcss";
 
+/* Ensure emoji fonts are loaded for dropdowns */
+.e-dropdownbase .e-list-item,
+.e-dropdownbase .e-input-group,
+.combo-box {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Figtree", sans-serif !important;
+}
+
 @theme {
   --font-figtree: "Figtree", sans-serif;
   --font-inter: "Inter", sans-serif;
