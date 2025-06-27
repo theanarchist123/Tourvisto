@@ -3,6 +3,7 @@ import { type RouteConfig, route, layout, index } from "@react-router/dev/routes
 export default [
     route('sign-in', 'routes/root/sign-in.tsx'),
     route('api/create-trip', 'routes/api/create-trip.ts'),
+    route('api/create-payment', 'routes/api/create-payment.ts'),
     layout("routes/admin/admin-layout.tsx", [
         route('dashboard', 'routes/admin/dashboard.tsx'),
         route('all-users', 'routes/admin/all-users.tsx'),
@@ -13,6 +14,6 @@ export default [
     layout('routes/root/page-layout.tsx', [
         index('routes/root/travel-page.tsx'),
         route('/travel/:tripId', 'routes/root/travel-detail.tsx'),
-
+        route('/travel/:tripId/success', 'routes/root/payment-success.tsx'),
     ])
 ] satisfies RouteConfig;

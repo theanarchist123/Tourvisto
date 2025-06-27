@@ -1,9 +1,21 @@
-import {Link, type LoaderFunctionArgs} from "react-router";
+import {Link, type LoaderFunctionArgs, useNavigate} from "react-router";
 import {getPublicTrips, getPublicTripById} from "~/appwrite/public-trips";
-import type { Route } from './+types/travel-detail';
 import {cn, getFirstWord, parseTripData} from "~/lib/utils";
 import {Header, InfoPill, TripCard} from "../../../components";
 import {ButtonComponent, ChipDirective, ChipListComponent, ChipsDirective} from "@syncfusion/ej2-react-buttons";
+import {useState} from "react";
+
+// Define types inline
+namespace Route {
+    export interface LoaderData {
+        trip?: any;
+        allTrips: any[];
+    }
+
+    export interface ComponentProps {
+        loaderData: LoaderData;
+    }
+}
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
     const { tripId } = params;
@@ -25,9 +37,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 }
 
 const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
+    const navigate = useNavigate();
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    
     const imageUrls = loaderData?.trip?.imageUrls || [];
     const tripData = parseTripData(loaderData?.trip?.tripDetail);
-    const paymentLink = loaderData?.trip?.payment_link;
+    const tripId = loaderData?.trip?.$id;
 
     const {
         name, duration, itinerary, travelStyle,
@@ -35,6 +50,56 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
         description, bestTimeToVisit, weatherInfo, country
     } = tripData || {};
     const allTrips = loaderData.allTrips as Trip[] | [];
+
+    const handlePayment = async () => {
+        if (!tripId) {
+            alert('Trip ID not found');
+            return;
+        }
+
+        setIsProcessingPayment(true);
+        
+        try {
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tripId }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.url) {
+                // Show test mode message before redirecting
+                if (data.testMode) {
+                    const proceed = confirm(
+                        `🧪 TEST MODE PAYMENT\n\n` +
+                        `This is a demo payment using Stripe's test mode.\n` +
+                        `No real money will be charged!\n\n` +
+                        `Use test card: 4242 4242 4242 4242\n` +
+                        `Any future date, any CVC\n\n` +
+                        `Click OK to proceed to test checkout.`
+                    );
+                    
+                    if (!proceed) {
+                        setIsProcessingPayment(false);
+                        return;
+                    }
+                }
+                
+                // Redirect to Stripe Checkout
+                window.location.href = data.url;
+            } else {
+                alert(`Payment processing failed: ${data.error || 'Unknown error'}\n\n${data.message || ''}`);
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment processing failed. This is just a demo - no real payment required!');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
 
     const pillItems = [
         { text: travelStyle, bg: '!bg-pink-50 !text-pink-500' },
@@ -171,14 +236,18 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     </section>
                 ))}
 
-                <a href={paymentLink} className="flex">
-                    <ButtonComponent className="button-class" type="submit">
+                <div className="flex">
+                    <ButtonComponent 
+                        className="button-class" 
+                        onClick={handlePayment}
+                        disabled={isProcessingPayment}
+                    >
                         <span className="p-16-semibold text-white">
-                            Pay to join the trip
+                            {isProcessingPayment ? 'Processing...' : '🧪 Demo Payment (Test Mode)'}
                         </span>
                         <span className="price-pill">{estimatedPrice}</span>
                     </ButtonComponent>
-                </a>
+                </div>
 
             </section>
             </div>
