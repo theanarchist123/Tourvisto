@@ -40,7 +40,27 @@ const NavItems = ({handleClick }: {handleClick?: () => void}) => {
 </nav>
 
 <footer className="nav-footer">
-  <img src={user?.imageUrl || '/assets/images/david.webp'} alt={user?.name || 'Nikhil'} referrerPolicy="no-referrer"/>
+  {user?.imageUrl ? (
+    <img 
+      src={user.imageUrl} 
+      alt={user?.name || 'User'} 
+      className="rounded-full size-10 aspect-square object-cover"
+      referrerPolicy="no-referrer"
+      onError={(e) => {
+        const target = e.target as HTMLImageElement;
+        target.src = '/assets/images/david.webp';
+      }}
+    />
+  ) : (
+    <div 
+      className="rounded-full size-10 aspect-square flex items-center justify-center text-white text-lg font-semibold"
+      style={{
+        backgroundColor: `hsl(${user?.name?.charCodeAt(0) * 137.5 % 360}, 50%, 50%)`
+      }}
+    >
+      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+    </div>
+  )}
 
   <article>
     <h2>{user?.name}</h2>
