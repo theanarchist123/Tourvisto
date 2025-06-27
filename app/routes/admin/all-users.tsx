@@ -29,7 +29,30 @@ const AllUsers = ({ loaderData }: Route.ComponentProps) => {
                         textAlign="Left"
                         template={(props: UserData) => (
                             <div className="flex items-center gap-1.5 px-4">
-        <img src={props.imageUrl} alt="user" className="rounded-full size-8 aspect-square" referrerPolicy="no-referrer" />
+                                {props.imageUrl ? (
+                                    <img 
+                                        src={props.imageUrl} 
+                                        alt="user" 
+                                        className="rounded-full size-8 aspect-square object-cover" 
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => {
+                                            // Fallback to initials if image fails to load
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            target.nextElementSibling?.classList.remove('hidden');
+                                        }}
+                                    />
+                                ) : null}
+                                <div 
+                                    className={`rounded-full size-8 aspect-square flex items-center justify-center text-white text-sm font-semibold ${
+                                        !props.imageUrl ? '' : 'hidden'
+                                    }`}
+                                    style={{
+                                        backgroundColor: `hsl(${props.name?.charCodeAt(0) * 137.5 % 360}, 50%, 50%)`
+                                    }}
+                                >
+                                    {props.name?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
                                 <span>{props.name}</span>
                             </div>
                         )}
