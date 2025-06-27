@@ -29,7 +29,7 @@ const RootNavbar = () => {
                         </Link>
                     )}
 
-                    <img src={user?.imageUrl || '/assets/images/david.wepb'} alt="user" referrerPolicy="no-referrer" />
+                    <img src={user?.imageUrl || '/assets/images/david.webp'} alt="user" referrerPolicy="no-referrer" />
 
                     <button onClick={handleLogout} className="cursor-pointer">
                         <img

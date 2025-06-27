@@ -3,6 +3,7 @@ import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {cn, parseTripData} from "~/lib/utils";
 import {Header, TripCard} from "../../../components";
 import {getAllTrips} from "~/appwrite/trips";
+import {getPublicTrips} from "~/appwrite/public-trips";
 import type {Route} from "../../../.react-router/types/app/routes/admin/+types/trips";
 import {useState} from "react";
 import {getUser} from "~/appwrite/auth";
@@ -40,14 +41,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const offset = (page - 1) * limit;
 
     const [user, { allTrips, total } ] = await Promise.all([
-        getUser(),
-        getAllTrips(limit, offset),
+        getUser().catch(() => null), // Make user optional - return null if not authenticated
+        getPublicTrips(limit, offset), // Use public trips instead
     ])
 
     return {
-        trips: allTrips.map(({ $id, tripDetails, imageUrls }) => ({
+        trips: allTrips.map(({ $id, tripDetail, imageUrls }) => ({
             id: $id,
-            ...parseTripData(tripDetails),
+            ...parseTripData(tripDetail),
             imageUrls: imageUrls ?? []
         })),
         total

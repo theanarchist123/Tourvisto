@@ -1,10 +1,8 @@
+# Tourvisto - Modern Travel Management Platform
 
-
-<div align="left">
-  <span style="display: flex; align-items:left; justify-content: left; gap: 10px;">
-    <img src="public/assets/icons/logo.svg" alt="Tourvisto Logo" width="48"/>
-    <span style="color: white; font-size: 2rem; font-weight: bold;"><h1>Tourvisto</h1></span>
-  </span>
+<div align="center">
+  <img src="public/assets/icons/logo.svg" alt="Tourvisto Logo" width="200"/>
+  <p><em>Your Next-Gen Travel Management Solution</em></p>
 </div>
 
 ## 🌟 Introduction
