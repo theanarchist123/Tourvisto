@@ -1,7 +1,7 @@
 # 🌍 Tourvisto - Where Dreams Meet Destinations ✈️
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/travel-banner.gif" alt="Tourvisto Banner" width="100%"/>
+  
   
   [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -109,15 +109,19 @@ yarn install
 ### 3️⃣ **Environment Setup**
 Create a `.env` file and add your secrets:
 ```env
-# 🔐 Appwrite Configuration
-VITE_APPWRITE_PROJECT_ID=your_project_id
-VITE_APPWRITE_ENDPOINT=your_endpoint
+VITE_SYNCFUSION_LICENSE_KEY=your-key
 
-# 💳 Stripe Configuration
-VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
-
-# 🌍 Other Settings
-VITE_APP_URL=http://localhost:5173
+VITE_APPWRITE_PROJECT_ID=your-key
+VITE_APPWRITE_API_KEY=your-key
+VITE_BASE_URL=http://localhost:5173/
+VITE_APPWRITE_DATABASE_ID=your-key
+VITE_APPWRITE_USERS_COLLECTION_ID=your-key
+VITE_APPWRITE_TRIPS_COLLECTION_ID=your-key
+VITE_APPWRITE_BOOKINGS_COLLECTION_ID=your-key
+VITE_APPWRITE_API_ENDPOINT=https://fra.cloud.appwrite.io/v1
+STRIPE_SECRET_KEY=your-key
+GEMINI_API_KEY=your-key
+UNSPLASH_ACCESS_KEY=your-key
 ```
 
 ### 4️⃣ **Launch the Rocket** 🚀
@@ -134,13 +138,19 @@ npm run dev
 <div align="center">
 
 ### 🏠 **Home Page - First Impressions Matter**
-<img src="https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=Stunning+Homepage" alt="Homepage" width="100%"/>
-
+<img src="intro1.jpg" alt="Homepage" width="100%"/>
+<img src="intro2.jpg" alt="Homepage" width="100%"/>
+<img src="intro3.jpg" alt="Homepage" width="100%"/>
 ### 📊 **Admin Dashboard - Power at Your Fingertips**
-<img src="https://via.placeholder.com/800x400/059669/FFFFFF?text=Analytics+Dashboard" alt="Dashboard" width="100%"/>
+
+<img src="dash1.jpg" alt="Dashboard" width="100%"/>
+<img src="dash2.jpg" alt="Dashboard" width="100%"/>
+<img src="dash3.jpg" alt="Dashboard" width="100%"/>
 
 ### 🎫 **Booking Flow - Seamless Experience**
-<img src="https://via.placeholder.com/800x400/DC2626/FFFFFF?text=Booking+Interface" alt="Booking" width="100%"/>
+<img src="book1.jpg" alt="Booking" width="100%"/>
+<img src="book2.png" alt="Booking" width="100%"/>
+<img src="book3.png" alt="Booking" width="100%"/>
 
 </div>
 
