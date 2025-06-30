@@ -2,7 +2,17 @@ import {Header} from "../../../components";
 import {ColumnsDirective, ColumnDirective, GridComponent} from "@syncfusion/ej2-react-grids";
 import {cn, formatDate} from "~/lib/utils";
 import {getAllUsers} from "~/appwrite/auth";
+import {useState} from "react";
 import type {Route} from "./+types/all-users"
+
+interface UserData {
+    accountId: string;
+    name: string;
+    email: string;
+    imageUrl?: string;
+    joinedAt: string;
+    status: 'user' | 'admin';
+}
 
 export const loader = async () => {
     const { users, total } = await getAllUsers(10, 0);
@@ -12,6 +22,48 @@ export const loader = async () => {
 
 const AllUsers = ({ loaderData }: Route.ComponentProps) => {
     const { users } = loaderData;
+    const [userList, setUserList] = useState(users);
+    const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+
+    const handleDeleteUser = async (userId: string, userName: string) => {
+        const confirmMessage = `⚠️ DELETE USER CONFIRMATION ⚠️\n\nYou are about to permanently delete:\n• User: ${userName}\n• Account ID: ${userId}\n\nThis action will:\n✗ Remove all user data\n✗ Delete user profile\n✗ Cannot be undone\n\nType "DELETE" to confirm:`;
+        
+        const userInput = prompt(confirmMessage);
+        
+        if (userInput !== "DELETE") {
+            if (userInput !== null) {
+                alert("Deletion cancelled. You must type 'DELETE' exactly to confirm.");
+            }
+            return;
+        }
+
+        setDeletingUserId(userId);
+        
+        try {
+            // Call API to delete user using POST method (since we're using React Router action)
+            const response = await fetch(`/api/delete-user/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Remove user from local state
+                setUserList(prevUsers => prevUsers.filter(user => user.accountId !== userId));
+                alert(`✅ SUCCESS: User "${userName}" has been permanently deleted.`);
+            } else {
+                alert(`❌ FAILED: Could not delete user.\nReason: ${result.error || 'Unknown error'}\nDetails: ${result.details || 'No additional details'}`);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('❌ NETWORK ERROR: Could not connect to server. Please check your connection and try again.');
+        } finally {
+            setDeletingUserId(null);
+        }
+    };
 
     return (
         <main className="all-users wrapper">
@@ -20,7 +72,7 @@ const AllUsers = ({ loaderData }: Route.ComponentProps) => {
                 description="Filter, sort, and access detailed user profiles"
             />
 
-            <GridComponent dataSource={users} gridLines="None">
+            <GridComponent dataSource={userList} gridLines="None">
                 <ColumnsDirective>
                     <ColumnDirective
                         field="name"
@@ -82,6 +134,45 @@ const AllUsers = ({ loaderData }: Route.ComponentProps) => {
                                         {status}
                                     </h3>
                             </article>
+                        )}
+                    />
+                    <ColumnDirective
+                        field="actions"
+                        headerText="Actions"
+                        width="120"
+                        textAlign="Center"
+                        template={(props: UserData) => (
+                            <div className="flex items-center justify-center px-4">
+                                <button
+                                    onClick={() => handleDeleteUser(props.accountId, props.name)}
+                                    disabled={deletingUserId === props.accountId}
+                                    className={cn(
+                                        "flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200",
+                                        "hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1",
+                                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                                        deletingUserId === props.accountId ? "bg-red-100" : "hover:bg-red-50"
+                                    )}
+                                    title={`Delete ${props.name}`}
+                                >
+                                    {deletingUserId === props.accountId ? (
+                                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <svg 
+                                            className="w-4 h-4 text-red-600" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={2}
+                                        >
+                                            <path 
+                                                strokeLinecap="round" 
+                                                strokeLinejoin="round" 
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                                            />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                         )}
                     />
                 </ColumnsDirective>

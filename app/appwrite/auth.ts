@@ -63,10 +63,13 @@ const getGooglePicture = async (accessToken: string) => {
 
 export const loginWithGoogle = async () => {
     try {
+        // Use environment variable for base URL to ensure consistency
+        const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:5173';
+        
         account.createOAuth2Session(
             OAuthProvider.Google,
-            `${window.location.origin}/`,
-            `${window.location.origin}/sign-in`
+            `${baseUrl}/`,  // Success redirect URL
+            `${baseUrl}/sign-in`  // Failure redirect URL
         );
     } catch (error) {
         console.error("Error during OAuth2 session creation:", error);
