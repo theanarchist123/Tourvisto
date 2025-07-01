@@ -53,7 +53,8 @@ Live updates that sync faster than your heartbeat on a mountain peak!
 - 💳 **Seamless Booking** - One-click reservations with Stripe integration
 - 📱 **Mobile-First Design** - Plan your trips on the go
 - 🎫 **Digital Tickets** - Get your boarding passes instantly
-- 📧 **Smart Notifications** - Never miss important travel updates
+- 📧 **Smart Notifications** - Email and SMS alerts for bookings
+- 📱 **SMS Confirmations** - Instant mobile notifications for all bookings
 - 🗺️ **Interactive Maps** - Visualize your journey before you go
 
 </details>
@@ -77,7 +78,7 @@ Live updates that sync faster than your heartbeat on a mountain peak!
 | Frontend | Backend | Payment | Tools | Styling |
 |----------|---------|---------|--------|---------|
 | ![React](https://img.shields.io/badge/-React_19-61DAFB?style=flat-square&logo=react&logoColor=white) | ![Appwrite](https://img.shields.io/badge/-Appwrite-F02E65?style=flat-square&logo=appwrite&logoColor=white) | ![Stripe](https://img.shields.io/badge/-Stripe-008CDD?style=flat-square&logo=stripe&logoColor=white) | ![Vite](https://img.shields.io/badge/-Vite-646CFF?style=flat-square&logo=vite&logoColor=white) | ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) |
-| ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) | ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white) | | ![React Router](https://img.shields.io/badge/-React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | ![Syncfusion](https://img.shields.io/badge/-Syncfusion-FF6C37?style=flat-square&logo=syncfusion&logoColor=white) |
+| ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) | ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white) | ![Twilio](https://img.shields.io/badge/-Twilio-F22F46?style=flat-square&logo=twilio&logoColor=white) | ![React Router](https://img.shields.io/badge/-React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | ![Syncfusion](https://img.shields.io/badge/-Syncfusion-FF6C37?style=flat-square&logo=syncfusion&logoColor=white) |
 
 </div>
 
@@ -90,6 +91,7 @@ Live updates that sync faster than your heartbeat on a mountain peak!
 - npm or yarn 🧶
 - Appwrite account 🔐
 - Stripe account (for payments) 💳
+- Twilio account (for SMS) 📱
 
 </details>
 
@@ -122,7 +124,14 @@ VITE_APPWRITE_API_ENDPOINT=https://fra.cloud.appwrite.io/v1
 STRIPE_SECRET_KEY=your-key
 GEMINI_API_KEY=your-key
 UNSPLASH_ACCESS_KEY=your-key
+
+# SMS Configuration (Twilio)
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=your-twilio-phone-number
 ```
+
+> 📱 **For SMS setup**, check out our detailed [SMS Setup Guide](SMS_SETUP_GUIDE.md)
 
 ### 4️⃣ **Launch the Rocket** 🚀
 ```bash
@@ -175,7 +184,7 @@ npm run dev
 - [ ] 💰 **Dynamic Pricing** based on demand
 - [ ] 🎫 **Group Bookings** with discounts
 - [ ] 📧 **Email Automation** for confirmations
-- [ ] 📲 **SMS Notifications** for updates
+- [x] 📲 **SMS Notifications** for updates ✅
 - [ ] 🔒 **Enhanced Security** with 2FA
 
 </details>

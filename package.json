@@ -34,7 +34,8 @@
     "react-dom": "^19.1.0",
     "react-router": "^7.5.3",
     "stripe": "^18.2.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "twilio": "^5.7.1"
   },
   "devDependencies": {
     "@react-router/dev": "^7.5.3",
@@ -44,6 +45,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/stripe": "^8.0.416",
+    "@types/twilio": "^3.19.2",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",

@@ -1,5 +1,6 @@
 import { Client, Databases } from 'appwrite';
 import { sendEmail, validateEmailConfig } from '~/lib/email';
+import { sendSMS, createBookingConfirmationSMS, createBookingReminderSMS, validateSMSConfig } from '~/lib/sms';
 
 // Create a server-side client
 const serverClient = new Client()
@@ -211,14 +212,99 @@ Tourvisto - Your Journey Begins Here
             // Don't throw - booking is still confirmed even if email fails
         }
 
+        // Send SMS notification
+        console.log('📱 Starting SMS notification process...');
+        try {
+            // Create SMS message
+            const smsMessage = createBookingConfirmationSMS(updatedBooking);
+            console.log('📝 SMS message created, length:', smsMessage.length);
+            console.log('📞 Sending SMS to:', updatedBooking.phone);
+            
+            // Send SMS notification
+            const smsResult = await sendSMS({
+                to: updatedBooking.phone,
+                message: smsMessage
+            });
+
+            if (smsResult.status === 'verification_required') {
+                console.log('📞 SMS requires phone verification for trial account');
+                console.log('📋 User needs to verify their phone number in Twilio Console');
+            } else {
+                console.log('✅ Booking confirmation SMS sent successfully!');
+                console.log('📧 SMS Details:', {
+                    messageId: smsResult.messageId,
+                    status: smsResult.status,
+                    to: smsResult.to
+                });
+            }
+
+        } catch (smsError: any) {
+            console.error('❌ SMS sending failed:', smsError.message);
+            console.error('📱 Full SMS Error:', smsError);
+            
+            // Provide specific guidance for common errors
+            if (smsError.code === 21608) {
+                console.log('🔧 SOLUTION: Verify phone number in Twilio Console');
+                console.log('   URL: https://console.twilio.com/');
+                console.log('   Go to: Phone Numbers → Manage → Verified Caller IDs');
+            }
+            
+            // Don't throw - booking is still confirmed even if SMS fails
+        }
+
         return {
             success: true,
             booking: updatedBooking,
-            message: 'Booking confirmed successfully'
+            message: 'Booking confirmed successfully. Email and SMS notifications sent.'
         };
 
     } catch (error: any) {
         console.error('Error confirming booking:', error);
         throw new Error(`Failed to confirm booking: ${error.message}`);
+    }
+};
+
+export const sendBookingReminder = async (bookingId: string) => {
+    try {
+        console.log('Sending booking reminder for:', bookingId);
+        
+        // Get booking details
+        const booking = await serverDatabase.getDocument(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID!,
+            import.meta.env.VITE_APPWRITE_BOOKINGS_COLLECTION_ID!,
+            bookingId
+        );
+
+        if (booking.bookingStatus !== 'confirmed') {
+            throw new Error('Cannot send reminder for unconfirmed booking');
+        }
+
+        // Send reminder SMS
+        try {
+            validateSMSConfig();
+            
+            const reminderMessage = createBookingReminderSMS(booking);
+            
+            const smsResult = await sendSMS({
+                to: booking.phone,
+                message: reminderMessage
+            });
+
+            console.log('✅ Booking reminder SMS sent successfully:', smsResult.messageId);
+
+            return {
+                success: true,
+                messageId: smsResult.messageId,
+                message: 'Booking reminder sent successfully'
+            };
+
+        } catch (smsError: any) {
+            console.error('❌ Error sending reminder SMS:', smsError);
+            throw new Error(`Failed to send reminder SMS: ${smsError.message}`);
+        }
+
+    } catch (error: any) {
+        console.error('Error sending booking reminder:', error);
+        throw new Error(`Failed to send booking reminder: ${error.message}`);
     }
 };

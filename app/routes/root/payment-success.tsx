@@ -22,14 +22,22 @@ export async function loader ({ request }: LoaderFunctionArgs) {
     const bookingId = url.searchParams.get('bookingId');
     const sessionId = url.searchParams.get('session_id');
     
+    console.log('💳 Payment Success Loader called');
+    console.log('📝 BookingId:', bookingId);
+    console.log('🔑 SessionId:', sessionId);
+    console.log('🌐 Full URL:', request.url);
+    
     // If we have a session_id, update the booking status to confirmed
     if (sessionId && bookingId) {
         try {
-            await confirmBookingAndSendEmail(bookingId, sessionId);
-            console.log('✅ Booking confirmed and email sent successfully');
+            console.log('✅ Confirming booking and sending notifications...');
+            const result = await confirmBookingAndSendEmail(bookingId, sessionId);
+            console.log('✅ Booking confirmed and email/SMS sent successfully:', result);
         } catch (error) {
-            console.error('Error confirming booking:', error);
+            console.error('❌ Error confirming booking:', error);
         }
+    } else {
+        console.log('⚠️ Missing sessionId or bookingId - skipping confirmation');
     }
     
     return {

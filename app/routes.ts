@@ -7,6 +7,7 @@ export default [
     route('api/create-booking', 'routes/api/create-booking.ts'),
     route('api/confirm-booking', 'routes/api/confirm-booking.ts'),
     route('api/send-ticket-email', 'routes/api/send-ticket-email.ts'),
+    route('api/send-reminder/:bookingId', 'routes/api/send-reminder.$bookingId.ts'),
     route('api/delete-user/:userId', 'routes/api/delete-user.$userId.ts'),
     route('api/booking/:bookingId', 'routes/api/booking.$bookingId.ts'),
     route('api/trip/:tripId', 'routes/api/trip.$tripId.ts'),

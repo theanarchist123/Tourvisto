@@ -2,6 +2,13 @@ import { type ActionFunctionArgs } from "react-router";
 import { stripe } from "~/lib/stripe";
 import { database } from "~/appwrite/client";
 
+// USD to INR conversion rate (approximate - in real app, fetch from live API)
+const USD_TO_INR_RATE = 83.50; // Current approximate rate
+
+const convertUSDToINR = (usdAmount: number): number => {
+    return Math.round(usdAmount * USD_TO_INR_RATE);
+};
+
 export const action = async ({ request }: ActionFunctionArgs) => {
     try {
         console.log('Creating payment - checking Stripe initialization...');
@@ -36,10 +43,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             });
         }
 
-        console.log('Creating Stripe checkout session...');
+        console.log('Original amount (USD):', amount);
 
-        // Convert amount to cents for Stripe (minimum $1 or ₹1)
-        const priceAmount = Math.max(Math.round(amount * 100), 100);
+        // Convert USD to INR if currency is INR
+        let finalAmount = amount;
+        let displayCurrency = currency;
+        
+        if (currency.toLowerCase() === 'inr') {
+            finalAmount = convertUSDToINR(amount);
+            console.log('Converted amount (INR):', finalAmount);
+        }
+
+        console.log('Creating Stripe checkout session...');
+        
+        const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:5174';
+        const successUrl = `${baseUrl}/payment-success?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`;
+        const cancelUrl = `${baseUrl}/payment/${bookingId}`;
+        
+        console.log('Success URL:', successUrl);
+        console.log('Cancel URL:', cancelUrl);
+
+        // Convert amount to paise for INR or cents for USD (minimum ₹1 or $1)
+        const priceAmount = Math.max(Math.round(finalAmount * 100), 100);
 
         // Create Stripe Checkout Session
         const session = await stripe.checkout.sessions.create({
@@ -47,10 +72,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             line_items: [
                 {
                     price_data: {
-                        currency: currency.toLowerCase(),
+                        currency: displayCurrency.toLowerCase(),
                         product_data: {
                             name: `✈️ Trip to ${booking.destination}`,
-                            description: `${description || `Trip booking for ${booking.numberOfMembers} member(s)`} \n\n⚠️ TEST MODE - No real payment will be charged!`,
+                            description: `${description || `Trip booking for ${booking.numberOfMembers} member(s)`}${currency.toLowerCase() === 'inr' ? `\n\n💱 Converted from $${amount} USD to ₹${finalAmount} INR (Rate: 1 USD = ₹${USD_TO_INR_RATE})` : ''} \n\n⚠️ TEST MODE - No real payment will be charged!`,
                         },
                         unit_amount: priceAmount,
                     },
@@ -58,8 +83,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')}/payment-success?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')}/payment/${bookingId}`,
+            success_url: successUrl,
+            cancel_url: cancelUrl,
             metadata: {
                 bookingId: bookingId,
                 travelerName: booking.travelerName,

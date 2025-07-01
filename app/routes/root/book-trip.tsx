@@ -6,6 +6,9 @@ import { account } from "~/appwrite/client";
 import { cn, parseTripData } from "~/lib/utils";
 import { getPublicTripById } from "~/appwrite/public-trips";
 
+// USD to INR conversion rate (approximate - in real app, fetch from live API)
+const USD_TO_INR_RATE = 83.50;
+
 // Indian airports data
 const indianAirports = [
     { code: 'DEL', name: 'Delhi - Indira Gandhi International Airport', city: 'New Delhi' },
@@ -235,6 +238,7 @@ const BookTrip = ({ loaderData }: { loaderData: { trip: any; airports: any[] } }
                             <h3 className="text-xl font-semibold">{trip.destination}</h3>
                             <p className="text-gray-600">{trip.duration} days</p>
                             <p className="text-2xl font-bold text-primary">${Number(trip.price).toLocaleString()}</p>
+                            <p className="text-sm text-gray-600">≈ ₹{(Number(trip.price) * USD_TO_INR_RATE).toLocaleString()} INR</p>
                         </div>
                     </div>
                 </div>
@@ -369,6 +373,12 @@ const BookTrip = ({ loaderData }: { loaderData: { trip: any; airports: any[] } }
                             <p className="text-lg font-semibold">Total Amount</p>
                             <p className="text-2xl font-bold text-primary">
                                 ${(Number(trip.price) * formData.numberOfMembers).toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                                ≈ ₹{(Number(trip.price) * formData.numberOfMembers * USD_TO_INR_RATE).toLocaleString()} INR
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                (Payment will be processed in Indian Rupees)
                             </p>
                         </div>
                     </div>
