@@ -42,34 +42,6 @@ export interface SMSOptions {
     message: string;
 }
 
-export const verifyPhoneNumber = async (phoneNumber: string): Promise<boolean> => {
-    try {
-        const client = initializeTwilioClient();
-        const cleanedPhone = cleanPhoneNumber(phoneNumber);
-        
-        console.log(`📞 Attempting to verify phone number: ${cleanedPhone}`);
-        
-        // Try to create a verification for the phone number
-        const verification = await client.validationRequests.create({
-            phoneNumber: cleanedPhone,
-        });
-        
-        console.log('✅ Phone verification initiated:', verification.phoneNumber);
-        return true;
-        
-    } catch (error: any) {
-        console.error('❌ Phone verification failed:', error.message);
-        
-        // If it's already verified or validation fails, we'll try to send SMS anyway
-        if (error.code === 60200 || error.message.includes('already verified')) {
-            console.log('📞 Phone number might already be verified');
-            return true;
-        }
-        
-        return false;
-    }
-};
-
 export const sendSMS = async ({ to, message }: SMSOptions) => {
     try {
         console.log('📱 SMS Configuration Check:');
@@ -104,53 +76,26 @@ export const sendSMS = async ({ to, message }: SMSOptions) => {
         // Clean and validate phone number
         const cleanedPhone = cleanPhoneNumber(to);
         
-        console.log(`📱 Preparing to send SMS to: ${cleanedPhone}`);
+        console.log(`📱 Sending SMS to: ${cleanedPhone}`);
         console.log(`📤 From: ${fromNumber}`);
         console.log(`💬 Message preview: ${message.substring(0, 50)}...`);
         
-        try {
-            // First attempt to send SMS
-            const messageResponse = await client.messages.create({
-                body: message,
-                from: fromNumber,
-                to: cleanedPhone,
-            });
+        const messageResponse = await client.messages.create({
+            body: message,
+            from: fromNumber,
+            to: cleanedPhone,
+        });
 
-            console.log('✅ SMS sent successfully!');
-            console.log('📧 Message SID:', messageResponse.sid);
-            console.log('📊 Status:', messageResponse.status);
-            
-            return {
-                success: true,
-                messageId: messageResponse.sid,
-                status: messageResponse.status,
-                to: cleanedPhone
-            };
-            
-        } catch (smsError: any) {
-            // If SMS fails due to unverified number, provide helpful guidance
-            if (smsError.code === 21608) {
-                console.log('📞 Phone number not verified. This is expected for trial accounts.');
-                console.log('🔧 To enable SMS for this number:');
-                console.log('   1. Go to https://console.twilio.com/');
-                console.log('   2. Navigate to Phone Numbers → Manage → Verified Caller IDs');
-                console.log('   3. Click "Add a new number" and verify:', cleanedPhone);
-                console.log('   4. Enter the verification code sent to your phone');
-                console.log('   5. Try booking again - SMS will work!');
-                
-                // Return a "success" but indicate it's pending verification
-                return {
-                    success: true,
-                    messageId: 'verification-required-' + Date.now(),
-                    status: 'verification_required',
-                    to: cleanedPhone,
-                    message: 'Phone number needs verification for trial account'
-                };
-            }
-            
-            // Re-throw other errors
-            throw smsError;
-        }
+        console.log('✅ SMS sent successfully!');
+        console.log('📧 Message SID:', messageResponse.sid);
+        console.log('📊 Status:', messageResponse.status);
+        
+        return {
+            success: true,
+            messageId: messageResponse.sid,
+            status: messageResponse.status,
+            to: cleanedPhone
+        };
 
     } catch (error: any) {
         console.error('❌ SMS Error Details:', {

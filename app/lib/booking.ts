@@ -226,29 +226,16 @@ Tourvisto - Your Journey Begins Here
                 message: smsMessage
             });
 
-            if (smsResult.status === 'verification_required') {
-                console.log('📞 SMS requires phone verification for trial account');
-                console.log('📋 User needs to verify their phone number in Twilio Console');
-            } else {
-                console.log('✅ Booking confirmation SMS sent successfully!');
-                console.log('📧 SMS Details:', {
-                    messageId: smsResult.messageId,
-                    status: smsResult.status,
-                    to: smsResult.to
-                });
-            }
+            console.log('✅ Booking confirmation SMS sent successfully!');
+            console.log('📧 SMS Details:', {
+                messageId: smsResult.messageId,
+                status: smsResult.status,
+                to: smsResult.to
+            });
 
         } catch (smsError: any) {
             console.error('❌ SMS sending failed:', smsError.message);
             console.error('📱 Full SMS Error:', smsError);
-            
-            // Provide specific guidance for common errors
-            if (smsError.code === 21608) {
-                console.log('🔧 SOLUTION: Verify phone number in Twilio Console');
-                console.log('   URL: https://console.twilio.com/');
-                console.log('   Go to: Phone Numbers → Manage → Verified Caller IDs');
-            }
-            
             // Don't throw - booking is still confirmed even if SMS fails
         }
 
