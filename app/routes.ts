@@ -2,6 +2,7 @@ import { type RouteConfig, route, layout, index } from "@react-router/dev/routes
 
 export default [
     route('sign-in', 'routes/root/sign-in.tsx'),
+    route('payment-success', 'routes/root/payment-success.tsx'),
     route('api/create-trip', 'routes/api/create-trip.ts'),
     route('api/create-payment', 'routes/api/create-payment.ts'),
     route('api/create-booking', 'routes/api/create-booking.ts'),
@@ -24,6 +25,5 @@ export default [
         route('/book-trip/:tripId', 'routes/root/book-trip.tsx'),
         route('/payment/:bookingId', 'routes/root/payment.tsx'),
         route('/ticket/:bookingId', 'routes/root/ticket.$bookingId.tsx'),
-        route('/payment-success', 'routes/root/payment-success.tsx'),
     ])
 ] satisfies RouteConfig;

@@ -4,6 +4,7 @@ import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import confetti from "canvas-confetti";
 import {LEFT_CONFETTI, RIGHT_CONFETTI} from "~/constants";
 import { confirmBookingAndSendEmail } from "~/lib/booking";
+import { Header } from "../../../components";
 
 // Define types inline
 namespace Route {
@@ -53,40 +54,43 @@ const PaymentSuccess = ({ loaderData }: Route.ComponentProps) => {
     }, [])
 
     return (
-        <main className="payment-success wrapper">
-            <section>
-                <article>
-                    <img src="/assets/icons/check.svg" className="size-24" />
-                    <h1>🧪 Demo Payment Successful!</h1>
+        <div className="bg-light-200">
+            <Header title="Payment Successful" description="Your booking has been confirmed" />
+            <main className="payment-success wrapper">
+                <section>
+                    <article>
+                        <img src="/assets/icons/check.svg" className="size-24" />
+                        <h1>🧪 Demo Payment Successful!</h1>
 
-                    <p>
-                        <strong>This was a test payment - no real money was charged!</strong><br/><br/>
-                        Your trip booking is confirmed! Your ticket has been generated and will be sent to your email. Get ready to explore & make memories! ✨
-                    </p>
-                    
-                    <Link to={`/ticket/${loaderData?.bookingId}`} className="w-full">
-                        <ButtonComponent className="button-class !h-11 !w-full">
-                            <img
-                                src="/assets/icons/itinerary-button.svg"
-                                className="size-5"
-                            />
+                        <p>
+                            <strong>This was a test payment - no real money was charged!</strong><br/><br/>
+                            Your trip booking is confirmed! Your ticket has been generated and will be sent to your email. Get ready to explore & make memories! ✨
+                        </p>
+                        
+                        <Link to={`/ticket/${loaderData?.bookingId}`} className="w-full">
+                            <ButtonComponent className="button-class !h-11 !w-full">
+                                <img
+                                    src="/assets/icons/itinerary-button.svg"
+                                    className="size-5"
+                                />
 
-                            <span className="p-16-semibold text-white">View Ticket</span>
-                        </ButtonComponent>
-                    </Link>
-                    <Link to={'/'} className="w-full">
-                        <ButtonComponent className="button-class-secondary !h-11 !w-full">
-                            <img
-                                src="/assets/icons/arrow-left.svg"
-                                className="size-5"
-                            />
+                                <span className="p-16-semibold text-white">View Ticket</span>
+                            </ButtonComponent>
+                        </Link>
+                        <Link to={'/'} className="w-full">
+                            <ButtonComponent className="button-class-secondary !h-11 !w-full">
+                                <img
+                                    src="/assets/icons/arrow-left.svg"
+                                    className="size-5"
+                                />
 
-                            <span className="p-16-semibold">Return to homepage</span>
-                        </ButtonComponent>
-                    </Link>
-                </article>
-            </section>
-        </main>
+                                <span className="p-16-semibold">Return to homepage</span>
+                            </ButtonComponent>
+                        </Link>
+                    </article>
+                </section>
+            </main>
+        </div>
     )
 }
 export default PaymentSuccess
