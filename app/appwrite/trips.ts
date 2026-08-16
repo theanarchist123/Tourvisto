@@ -56,5 +56,19 @@ export const getTripById = async (tripId: string) => {
         }
         
         return null;
+}
+
+export const updateTripById = async (tripId: string, updatedData: any) => {
+    try {
+        const result = await database.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.tripCollectionId,
+            tripId,
+            updatedData
+        );
+        return result;
+    } catch (error: any) {
+        console.error('Error updating trip:', error);
+        throw error;
     }
 }

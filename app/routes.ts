@@ -12,6 +12,8 @@ export default [
     route('api/delete-user/:userId', 'routes/api/delete-user.$userId.ts'),
     route('api/booking/:bookingId', 'routes/api/booking.$bookingId.ts'),
     route('api/trip/:tripId', 'routes/api/trip.$tripId.ts'),
+    route('api/update-trip', 'routes/api/update-trip.ts'),
+    route('api/regenerate-activity', 'routes/api/regenerate-activity.ts'),
     layout("routes/admin/admin-layout.tsx", [
         route('dashboard', 'routes/admin/dashboard.tsx'),
         route('all-users', 'routes/admin/all-users.tsx'),
