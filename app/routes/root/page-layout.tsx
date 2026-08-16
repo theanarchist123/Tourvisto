@@ -11,8 +11,11 @@ export async function clientLoader() {
 
         const existingUser = await getExistingUser(user.$id);
         return existingUser?.$id ? existingUser : await storeUserData();
-    } catch (e) {
-        console.log('Error fetching user', e)
+    } catch (e: any) {
+        // Appwrite throws 401 for guests, which is expected. Don't log it.
+        if (e?.code !== 401) {
+            console.error('Error fetching user:', e);
+        }
         return null;
     }
 }

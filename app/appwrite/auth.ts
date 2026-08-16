@@ -101,7 +101,9 @@ export const getUser = async () => {
 
         return documents.length > 0 ? documents[0] : null; // Changed from redirect to return null
     } catch (error: any) {
-        console.error("Error fetching user:", error);
+        if (error?.code !== 401) {
+            console.error("Error fetching user:", error);
+        }
         // Don't redirect on error, just return null for unauthenticated users
         return null;
     }
