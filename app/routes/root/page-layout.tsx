@@ -5,6 +5,24 @@ import RootNavbar from "../../../components/RootNavbar";
 
 export async function clientLoader() {
     try {
+        // Exchange OAuth token for session if returning from Google OAuth redirect
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            const secret = urlParams.get('secret');
+
+            if (userId && secret) {
+                try {
+                    await account.createSession(userId, secret);
+                    // Remove userId and secret from the URL bar cleanly
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                } catch (sessionErr) {
+                    console.error('Error creating session from OAuth token:', sessionErr);
+                }
+            }
+        }
+
         const user = await account.get();
 
         if(!user || !user.$id) return null;

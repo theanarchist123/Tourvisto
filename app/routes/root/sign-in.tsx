@@ -5,11 +5,28 @@ import {account} from "~/appwrite/client";
 
 export async function clientLoader() {
     try {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            const secret = urlParams.get('secret');
+
+            if (userId && secret) {
+                try {
+                    await account.createSession(userId, secret);
+                    return redirect('/');
+                } catch (sessionErr) {
+                    console.error('Error creating session from OAuth token:', sessionErr);
+                }
+            }
+        }
+
         const user = await account.get();
 
-        if(user.$id) return redirect('/');
-    } catch (e) {
-        console.log('Error fetching user', e)
+        if(user?.$id) return redirect('/');
+    } catch (e: any) {
+        if (e?.code !== 401) {
+            console.error('Error fetching user', e);
+        }
     }
 }
 

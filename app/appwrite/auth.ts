@@ -80,13 +80,14 @@ export const loginWithGoogle = async () => {
         const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 
             (import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:5173');
         
-        account.createOAuth2Session(
+        // Use createOAuth2Token for token-based session creation (bypasses 3rd party cookie blocking on Vercel)
+        account.createOAuth2Token(
             OAuthProvider.Google,
             `${currentOrigin}/`,  // Success redirect URL
             `${currentOrigin}/sign-in`  // Failure redirect URL
         );
     } catch (error) {
-        console.error("Error during OAuth2 session creation:", error);
+        console.error("Error during OAuth2 token creation:", error);
     }
 };
 
