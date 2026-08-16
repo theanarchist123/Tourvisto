@@ -11,19 +11,38 @@ export const formatDate = (dateString: string): string => {
 };
 
 export function parseMarkdownToJson(markdownText: string): unknown | null {
-    const regex = /```json\n([\s\S]+?)\n```/;
-    const match = markdownText.match(regex);
+    if (!markdownText) return null;
+
+    // 1. Try extracting from markdown code block ```json ... ``` or ``` ... ```
+    const codeBlockRegex = /```(?:json)?\s*([\s\S]+?)\s*```/i;
+    const match = markdownText.match(codeBlockRegex);
 
     if (match && match[1]) {
         try {
-            return JSON.parse(match[1]);
+            return JSON.parse(match[1].trim());
         } catch (error) {
-            console.error("Error parsing JSON:", error);
-            return null;
+            console.error("Error parsing JSON from code block:", error);
         }
     }
-    console.error("No valid JSON found in markdown text.");
-    return null;
+
+    // 2. Try extracting JSON object directly using { ... }
+    const jsonObjectRegex = /\{[\s\S]*\}/;
+    const jsonMatch = markdownText.match(jsonObjectRegex);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[0].trim());
+        } catch (error) {
+            console.error("Error parsing raw JSON object:", error);
+        }
+    }
+
+    // 3. Try parsing entire text directly
+    try {
+        return JSON.parse(markdownText.trim());
+    } catch (error) {
+        console.error("No valid JSON found in text.");
+        return null;
+    }
 }
 
 export function parseTripData(jsonString: string | undefined | null): Trip | null {

@@ -6,26 +6,34 @@ import {ID} from "appwrite";
 
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-    const {
-        country,
-        numberOfDays,
-        travelStyle,
-        interests,
-        budget,
-        groupType,
-        userId,
-    } = await request.json();
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY!;
-
     try {
+        const {
+            country,
+            numberOfDays,
+            travelStyle,
+            interests,
+            budget,
+            groupType,
+            userId,
+        } = await request.json();
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return new Response(
+                JSON.stringify({ error: "GEMINI_API_KEY environment variable is missing on the server." }),
+                { status: 500, headers: { "Content-Type": "application/json" } }
+            );
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY || "";
+
         const prompt = `Generate a ${numberOfDays}-day travel itinerary for ${country} based on the following user information:
         Budget: '${budget}'
         Interests: '${interests}'
         TravelStyle: '${travelStyle}'
         GroupType: '${groupType}'
-        Return the itinerary and lowest estimated price in a clean, non-markdown JSON format with the following structure:
+        Return the itinerary and lowest estimated price in a clean JSON format with the following structure:
         {
         "name": "A descriptive title for the trip",
         "description": "A brief description of the trip and its highlights not exceeding 100 words",
@@ -34,19 +42,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         "budget": "${budget}",
         "travelStyle": "${travelStyle}",
         "country": "${country}",
-        "interests": ${interests},
+        "interests": ${JSON.stringify(interests)},
         "groupType": "${groupType}",
         "bestTimeToVisit": [
-          '🌸 Season (from month to month): reason to visit',
-          '☀️ Season (from month to month): reason to visit',
-          '🍁 Season (from month to month): reason to visit',
-          '❄️ Season (from month to month): reason to visit'
+          "🌸 Season (from month to month): reason to visit",
+          "☀️ Season (from month to month): reason to visit",
+          "🍁 Season (from month to month): reason to visit",
+          "❄️ Season (from month to month): reason to visit"
         ],
         "weatherInfo": [
-          '☀️ Season: temperature range in Celsius (temperature range in Fahrenheit)',
-          '🌦️ Season: temperature range in Celsius (temperature range in Fahrenheit)',
-          '🌧️ Season: temperature range in Celsius (temperature range in Fahrenheit)',
-          '❄️ Season: temperature range in Celsius (temperature range in Fahrenheit)'
+          "☀️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+          "🌦️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+          "🌧️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+          "❄️ Season: temperature range in Celsius (temperature range in Fahrenheit)"
         ],
         "location": {
           "city": "name of the city or region",
@@ -62,23 +70,48 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             {"time": "Afternoon", "description": "🖼️ Explore a famous art museum with a guided tour"},
             {"time": "Evening", "description": "🍷 Dine at a rooftop restaurant with local wine"}
           ]
-        },
-        ...
+        }
         ]
-    }`;
+        }`;
 
-        const textResult = await genAI
-            .getGenerativeModel({ model: 'gemini-2.0-flash' })
-            .generateContent([prompt])
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
 
-        const trip = parseMarkdownToJson(textResult.response.text());
+        const textResult = await model.generateContent([prompt]);
+        const responseText = textResult.response.text();
 
-        const imageResponse = await fetch(
-            `https://api.unsplash.com/search/photos?query=${country} ${interests} ${travelStyle}&client_id=${unsplashApiKey}`
-        );
+        const trip = parseMarkdownToJson(responseText);
 
-        const imageUrls = (await imageResponse.json()).results.slice(0, 3)
-            .map((result: any) => result.urls?.regular || null);
+        if (!trip) {
+            console.error("Failed to parse trip JSON from Gemini response:", responseText);
+            return new Response(
+                JSON.stringify({ error: "Failed to parse generated travel itinerary from AI response." }),
+                { status: 500, headers: { "Content-Type": "application/json" } }
+            );
+        }
+
+        let imageUrls: string[] = [];
+        if (unsplashApiKey) {
+            try {
+                const searchQuery = encodeURIComponent(`${country} ${interests} ${travelStyle}`);
+                const imageResponse = await fetch(
+                    `https://api.unsplash.com/search/photos?query=${searchQuery}&client_id=${unsplashApiKey}`
+                );
+                if (imageResponse.ok) {
+                    const imageData = await imageResponse.json();
+                    imageUrls = (imageData.results || [])
+                        .slice(0, 3)
+                        .map((result: any) => result.urls?.regular || null)
+                        .filter(Boolean);
+                }
+            } catch (imgError) {
+                console.error("Unsplash fetch error:", imgError);
+            }
+        }
 
         const result = await database.createDocument(
             appwriteConfig.databaseId,
@@ -90,14 +123,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 imageUrls,
                 userId,
             }
-        )
-
+        );
 
         return new Response(JSON.stringify({ id: result.$id }), {
             status: 200,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { "Content-Type": "application/json" },
         });
-    } catch (e) {
-        console.error('Error generating travel plan: ', e);
+    } catch (e: any) {
+        console.error("Error generating travel plan: ", e);
+        return new Response(
+            JSON.stringify({ error: e?.message || "An unexpected error occurred while generating trip" }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+        );
     }
-}
+};

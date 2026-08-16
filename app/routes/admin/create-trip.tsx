@@ -171,14 +171,29 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
                    groupType: formData.groupType,
                    userId: user.$id
                })
-           })
+           });
 
-           const result: CreateTripResponse = await response.json();
+           let result: any = null;
+           const contentType = response.headers.get("content-type");
+           if (contentType && contentType.includes("application/json")) {
+               result = await response.json();
+           } else {
+               const textError = await response.text();
+               console.error("Server returned non-JSON error response:", textError);
+               setError("Server error: " + (textError.slice(0, 100) || "Failed to generate trip"));
+               return;
+           }
+
+           if (!response.ok || result?.error) {
+               setError(result?.error || 'Failed to generate trip');
+               return;
+           }
 
            if(result?.id) navigate(`/trips/${result.id}`)
-           else console.error('Failed to generate a trip')
-       } catch (e) {
+           else setError('Failed to generate a trip')
+       } catch (e: any) {
            console.error('Error generating trip', e);
+           setError(e?.message || 'Error generating trip');
        } finally {
            setLoading(false)
        }
