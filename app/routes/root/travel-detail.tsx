@@ -264,52 +264,54 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                 <button 
                     type="button"
                     onClick={handleShareTrip}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-light-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-light-200 shadow-xs transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-light-300 rounded-xl text-sm font-semibold text-dark-400 hover:bg-light-200 shadow-xs transition-all cursor-pointer"
                 >
                     <span>{copiedShareLink ? '✅ Link Copied!' : '🔗 Share Itinerary'}</span>
                 </button>
             </div>
 
+            {/* Header */}
+            <header className="flex flex-col gap-4">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-dark-100 tracking-tight leading-tight">
+                    {name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3">
+                    <InfoPill
+                        text={`${duration} day plan`}
+                        image="/assets/icons/calendar.svg"
+                    />
+                    <InfoPill
+                        text={itinerary?.slice(0, 3).map((item: any) => item.location).join(', ') || country || ''}
+                        image="/assets/icons/location-mark.svg"
+                    />
+                </div>
+            </header>
+
+            {/* Image Gallery */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl overflow-hidden mb-10">
+                {imageUrls.map((url: string, i: number) => (
+                    <div 
+                        key={i} 
+                        className={cn(
+                            "overflow-hidden rounded-2xl shadow-sm bg-light-300",
+                            i === 0 ? "md:col-span-2 md:row-span-2 h-[340px] md:h-[420px]" : "h-[160px] md:h-[200px]"
+                        )}
+                    >
+                        <img
+                            src={url}
+                            alt={`Trip ${i}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        />
+                    </div>
+                ))}
+            </section>
+
+
+
             {/* Main 2-Column Layout */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
                 {/* Left Content Column */}
                 <div className="flex-1 w-full min-w-0 flex flex-col gap-8">
-                    {/* Header */}
-                    <header className="flex flex-col gap-4">
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-dark-100 tracking-tight leading-tight">
-                            {name}
-                        </h1>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <InfoPill
-                                text={`${duration} day plan`}
-                                image="/assets/icons/calendar.svg"
-                            />
-                            <InfoPill
-                                text={itinerary?.slice(0, 3).map((item: any) => item.location).join(', ') || country || ''}
-                                image="/assets/icons/location-mark.svg"
-                            />
-                        </div>
-                    </header>
-
-                    {/* Image Gallery */}
-                    <section className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl overflow-hidden">
-                        {imageUrls.map((url: string, i: number) => (
-                            <div 
-                                key={i} 
-                                className={cn(
-                                    "overflow-hidden rounded-2xl shadow-sm bg-light-300",
-                                    i === 0 ? "md:col-span-2 md:row-span-2 h-[340px] md:h-[420px]" : "h-[160px] md:h-[200px]"
-                                )}
-                            >
-                                <img
-                                    src={url}
-                                    alt={`Trip ${i}`}
-                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                />
-                            </div>
-                        ))}
-                    </section>
-
                     {/* Style Chips */}
                     <section className="flex gap-2 items-center flex-wrap">
                         {pillItems.map((pill, i) => (
@@ -325,7 +327,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     {/* Overview Narrative */}
                     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-light-100 shadow-xs">
                         <h2 className="text-xl font-bold text-dark-100 mb-3">About This Journey</h2>
-                        <p className="text-base sm:text-lg font-normal text-gray-700 leading-relaxed">
+                        <p className="text-base sm:text-lg font-normal text-dark-400 leading-relaxed">
                             {description}
                         </p>
                     </section>
@@ -361,7 +363,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                         "flex flex-col md:flex-row gap-4 p-4 rounded-xl border transition-all",
                                                         isEditing ? "bg-primary-50/50 border-primary-100 shadow-sm" : "bg-light-200 border-transparent hover:border-light-300"
                                                     )}>
-                                                        <span className="flex-shrink-0 font-bold text-xs uppercase text-gray-500 w-24 pt-1">
+                                                        <span className="flex-shrink-0 font-bold text-xs uppercase text-gray-100 w-24 pt-1">
                                                             {activity.time}
                                                         </span>
                                                         
@@ -401,7 +403,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                             </div>
                                                         ) : (
                                                             <div className="flex-grow flex items-start justify-between gap-4">
-                                                                <p className={cn("text-gray-700 text-sm sm:text-base leading-relaxed", isGenerating && "opacity-50 animate-pulse")}>
+                                                                <p className={cn("text-dark-400 text-sm sm:text-base leading-relaxed", isGenerating && "opacity-50 animate-pulse")}>
                                                                     {activity.description}
                                                                 </p>
                                                                 <button 
@@ -433,7 +435,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                 </h3>
                                 <ul className="flex flex-col gap-2">
                                     {section.items?.map((item: string) => (
-                                        <li key={item} className="text-sm text-gray-500 flex items-start gap-2">
+                                        <li key={item} className="text-sm text-gray-100 flex items-start gap-2">
                                             <span className="text-primary font-bold">•</span>
                                             <span>{item}</span>
                                         </li>
@@ -479,7 +481,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         <div className="grid gap-4">
                             {reviews.length === 0 ? (
                                 <div className="text-center py-8 bg-light-200 rounded-xl border border-dashed border-light-300">
-                                    <p className="text-gray-500 italic text-sm">No vibe checks yet. Be the first to share your experience!</p>
+                                    <p className="text-gray-100 italic text-sm">No vibe checks yet. Be the first to share your experience!</p>
                                 </div>
                             ) : (
                                 reviews.map((r: any, i: number) => (
@@ -495,7 +497,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                 {r.vibe}
                                             </span>
                                         </div>
-                                        <p className="text-gray-700 text-sm leading-relaxed">{r.comment}</p>
+                                        <p className="text-dark-400 text-sm leading-relaxed">{r.comment}</p>
                                     </div>
                                 ))
                             )}
@@ -506,7 +508,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-bold text-sm text-dark-100">Leave a Vibe Check</h3>
                                 {currentUser?.$id ? (
-                                    <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-light-300 font-medium">
+                                    <span className="text-xs text-gray-100 bg-white px-2.5 py-1 rounded-full border border-light-300 font-medium">
                                         Posting as {currentUser.name || 'Traveler'}
                                     </span>
                                 ) : (
@@ -522,7 +524,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                             </div>
                             <form onSubmit={handleAddReview} className="flex flex-col gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 mb-2">What was the primary vibe?</label>
+                                    <label className="block text-xs font-semibold text-gray-100 mb-2">What was the primary vibe?</label>
                                     <div className="flex flex-wrap gap-2">
                                         {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
                                             <button
@@ -531,7 +533,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                 onClick={() => setVibe(v)}
                                                 className={cn(
                                                     "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer",
-                                                    vibe === v ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-gray-700 border-light-300 hover:bg-light-300"
+                                                    vibe === v ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-dark-400 border-light-300 hover:bg-light-300"
                                                 )}
                                             >
                                                 {v}
@@ -577,7 +579,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
 
                         {/* Live Currency Selector */}
                         <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-gray-500">Select Currency</label>
+                            <label className="text-xs font-semibold text-gray-100">Select Currency</label>
                             <div className="grid grid-cols-5 gap-1 bg-light-300 p-1 rounded-xl">
                                 {(['USD', 'INR', 'EUR', 'GBP', 'AED'] as const).map(curr => (
                                     <button
@@ -588,7 +590,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                             "py-1.5 text-xs font-bold rounded-lg transition-all text-center",
                                             selectedCurrency === curr
                                                 ? "bg-white text-primary shadow-xs"
-                                                : "text-gray-500 hover:text-dark-200"
+                                                : "text-gray-100 hover:text-dark-200"
                                         )}
                                     >
                                         {curr}
@@ -597,7 +599,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                             </div>
                         </div>
 
-                        <div className="border-t border-b border-light-100 py-4 flex flex-col gap-3 text-sm text-gray-500">
+                        <div className="border-t border-b border-light-100 py-4 flex flex-col gap-3 text-sm text-gray-100">
                             <div className="flex justify-between">
                                 <span>Duration:</span>
                                 <span className="font-semibold text-dark-100">{duration} Days</span>
@@ -620,11 +622,11 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         </button>
 
                         <div className="flex flex-col gap-2 pt-2">
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-100">
                                 <span>🛡️</span>
                                 <span>Secure Stripe Payment & Flight Ticket</span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-100">
                                 <span>✨</span>
                                 <span>AI-Powered Itinerary Customization</span>
                             </div>
