@@ -57,6 +57,13 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    const [reviews, setReviews] = useState(tripData?.reviews || []);
+    const [vibe, setVibe] = useState('🌅 Scenic');
+    const [comment, setComment] = useState('');
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [aiSummary, setAiSummary] = useState<string | null>(null);
+    const [isSummarizing, setIsSummarizing] = useState(false);
+
     const {
         name, duration, travelStyle,
         groupType, budget, interests, estimatedPrice,
@@ -131,6 +138,59 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
             console.error(e);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleAddReview = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!currentUser) {
+            alert('Please sign in to leave a vibe check.');
+            return;
+        }
+        setIsSubmittingReview(true);
+        try {
+            const res = await fetch('/api/add-review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tripId,
+                    vibe,
+                    comment,
+                    userName: currentUser.name || 'Traveler'
+                })
+            });
+            const data = await res.json();
+            if (data.reviews) {
+                setReviews(data.reviews);
+                setComment('');
+                setAiSummary(null); // Clear summary so it can be regenerated with new data
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSubmittingReview(false);
+        }
+    };
+
+    const handleSummarize = async () => {
+        setIsSummarizing(true);
+        try {
+            const res = await fetch('/api/summarize-reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reviews,
+                    tripName: name
+                })
+            });
+            const data = await res.json();
+            if (data.summary) {
+                setAiSummary(data.summary);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSummarizing(false);
         }
     };
 
@@ -315,6 +375,102 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         <span className="price-pill">{estimatedPrice}</span>
                     </ButtonComponent>
                 </div>
+
+                <hr className="my-10 border-gray-200" />
+
+                <section className="reviews-section w-full">
+                    <h2 className="p-30-bold text-dark-100 mb-6">Traveler Vibe Checks</h2>
+                    
+                    {reviews.length > 0 && (
+                        <div className="mb-8">
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
+                                <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4 mb-4">
+                                    <h3 className="font-semibold text-purple-900 flex items-center gap-2">
+                                        ✨ AI Sentiment Summary
+                                    </h3>
+                                    {!aiSummary && (
+                                        <button 
+                                            onClick={handleSummarize}
+                                            disabled={isSummarizing}
+                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50"
+                                        >
+                                            {isSummarizing ? 'Analyzing...' : 'Generate Summary'}
+                                        </button>
+                                    )}
+                                </div>
+                                {aiSummary ? (
+                                    <p className="text-purple-800 text-lg leading-relaxed">{aiSummary}</p>
+                                ) : (
+                                    <p className="text-purple-600/70 text-sm">Click generate to see what travelers really think about this trip, powered by Gemini AI.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid gap-4 mb-10">
+                        {reviews.length === 0 ? (
+                            <p className="text-gray-500 italic">No vibe checks yet. Be the first!</p>
+                        ) : (
+                            reviews.map((r: any, i: number) => (
+                                <div key={i} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-3">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                                {r.userName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="font-medium text-gray-900">{r.userName}</span>
+                                        </div>
+                                        <span className="bg-gray-50 px-3 py-1 rounded-full text-sm font-medium border border-gray-200">
+                                            {r.vibe}
+                                        </span>
+                                    </div>
+                                    <p className="text-gray-700 leading-relaxed">{r.comment}</p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {currentUser && (
+                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                            <h3 className="font-semibold text-gray-900 mb-4">Leave a Vibe Check</h3>
+                            <form onSubmit={handleAddReview} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">What was the primary vibe?</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
+                                            <button
+                                                key={v}
+                                                type="button"
+                                                onClick={() => setVibe(v)}
+                                                className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all border", vibe === v ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100")}
+                                            >
+                                                {v}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <textarea 
+                                        className="w-full bg-white border border-gray-200 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-700 min-h-[100px]"
+                                        placeholder="Share your experience..."
+                                        value={comment}
+                                        onChange={e => setComment(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <button 
+                                        type="submit" 
+                                        disabled={isSubmittingReview || !comment.trim()}
+                                        className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+                </section>
 
             </section>
             </div>

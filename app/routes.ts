@@ -14,6 +14,8 @@ export default [
     route('api/trip/:tripId', 'routes/api/trip.$tripId.ts'),
     route('api/update-trip', 'routes/api/update-trip.ts'),
     route('api/regenerate-activity', 'routes/api/regenerate-activity.ts'),
+    route('api/add-review', 'routes/api/add-review.ts'),
+    route('api/summarize-reviews', 'routes/api/summarize-reviews.ts'),
     layout("routes/admin/admin-layout.tsx", [
         route('dashboard', 'routes/admin/dashboard.tsx'),
         route('all-users', 'routes/admin/all-users.tsx'),
