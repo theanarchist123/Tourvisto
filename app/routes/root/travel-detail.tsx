@@ -253,321 +253,390 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     ]
 
     return (
-        <main className="travel-detail pt-40 wrapper">
-            <div className="travel-div">
-                <div className="flex justify-between items-center w-full mb-6">
-                    <Link to="/" className="back-link !mb-0">
-                        <img src="/assets/icons/arrow-left.svg" alt="back icon" />
-                        <span>Go back</span>
-                    </Link>
+        <main className="travel-detail pt-32 pb-24 wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Top Navigation & Share Bar */}
+            <div className="flex justify-between items-center w-full mb-8">
+                <Link to="/" className="flex items-center gap-2.5 py-2.5 px-5 bg-white border border-gray-200 rounded-xl shadow-xs text-dark-100 font-semibold hover:bg-gray-50 transition-all">
+                    <img src="/assets/icons/arrow-left.svg" alt="back" className="size-4" />
+                    <span>Back to Explore</span>
+                </Link>
 
-                    {/* Quick Social Share */}
-                    <button 
-                        type="button"
-                        onClick={handleShareTrip}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all cursor-pointer"
-                    >
-                        <span>{copiedShareLink ? '✅ Link Copied!' : '🔗 Share Trip'}</span>
-                    </button>
-                </div>
+                <button 
+                    type="button"
+                    onClick={handleShareTrip}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-xs transition-all cursor-pointer"
+                >
+                    <span>{copiedShareLink ? '✅ Link Copied!' : '🔗 Share Itinerary'}</span>
+                </button>
+            </div>
 
-
-            <section className="container wrapper-md">
-                <header>
-                    <h1 className="p-40-semibold text-dark-100">{name}</h1>
-                    <div className="flex items-center gap-5">
-                        <InfoPill
-                            text={`${duration} day plan`}
-                            image="/assets/icons/calendar.svg"
-                        />
-
-                        <InfoPill
-                            text={itinerary?.slice(0,4)
-                                .map((item: any) => item.location).join(', ') || ''}
-                            image="/assets/icons/location-mark.svg"
-                        />
-                    </div>
-                </header>
-
-                <section className="gallery">
-                    {imageUrls.map((url: string, i: number) => (
-                        <img
-                            src={url}
-                            key={i}
-                            className={cn('w-full rounded-xl object-cover', i === 0
-                                ? 'md:col-span-2 md:row-span-2 h-[330px]'
-                                : 'md:row-span-1 h-[150px]')}
-                        />
-                    ))}
-                </section>
-
-                <section className="flex gap-3 md:gap-5 items-center flex-wrap">
-                    <ChipListComponent id="travel-chip">
-                        <ChipsDirective>
-                            {pillItems.map((pill, i) => (
-                                <ChipDirective
-                                    key={i}
-                                    text={getFirstWord(pill.text)}
-                                    cssClass={`${pill.bg} !text-base !font-medium !px-4`}
-                                />
-                            ))}
-                        </ChipsDirective>
-                    </ChipListComponent>
-                </section>
-
-                {/* Title & Live Currency Converter */}
-                <section className="title flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <article>
-                        <h3>
-                            {duration}-Day {country} {travelStyle} Trip
-                        </h3>
-                        <p>{budget}, {groupType} and {interests}</p>
-                    </article>
-
-                    <div className="flex flex-col md:items-end gap-2">
-                        <h2 className="text-3xl font-bold text-primary">{formatConvertedPrice()}</h2>
-                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                            {(['USD', 'INR', 'EUR', 'GBP', 'AED'] as const).map(curr => (
-                                <button
-                                    key={curr}
-                                    type="button"
-                                    onClick={() => setSelectedCurrency(curr)}
-                                    className={cn(
-                                        "px-2 py-1 text-xs font-semibold rounded transition-all",
-                                        selectedCurrency === curr
-                                            ? "bg-white text-primary shadow-xs font-bold"
-                                            : "text-gray-500 hover:text-gray-800"
-                                    )}
-                                >
-                                    {curr}
-                                </button>
-                            ))}
+            {/* Main 2-Column Layout */}
+            <div className="flex flex-col lg:flex-row gap-10 items-start">
+                {/* Left Content Column */}
+                <div className="flex-1 w-full min-w-0 flex flex-col gap-8">
+                    {/* Header */}
+                    <header className="flex flex-col gap-4">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
+                            {name}
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <InfoPill
+                                text={`${duration} day plan`}
+                                image="/assets/icons/calendar.svg"
+                            />
+                            <InfoPill
+                                text={itinerary?.slice(0, 3).map((item: any) => item.location).join(', ') || country || ''}
+                                image="/assets/icons/location-mark.svg"
+                            />
                         </div>
-                    </div>
-                </section>
+                    </header>
 
-                <p className="text-sm md:text-lg font-normal text-dark-400">{description}</p>
+                    {/* Image Gallery */}
+                    <section className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl overflow-hidden">
+                        {imageUrls.map((url: string, i: number) => (
+                            <div 
+                                key={i} 
+                                className={cn(
+                                    "overflow-hidden rounded-2xl shadow-sm bg-gray-100",
+                                    i === 0 ? "md:col-span-2 md:row-span-2 h-[340px] md:h-[420px]" : "h-[160px] md:h-[200px]"
+                                )}
+                            >
+                                <img
+                                    src={url}
+                                    alt={`Trip ${i}`}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                />
+                            </div>
+                        ))}
+                    </section>
 
-                <ul className="itinerary">
-                    {itinerary?.map((dayPlan: any, dIndex: number) => (
-                        <li key={dIndex}>
-                            <h3>
-                                Day {dayPlan.day}: {dayPlan.location}
-                            </h3>
+                    {/* Style Chips */}
+                    <section className="flex gap-2 items-center flex-wrap">
+                        {pillItems.map((pill, i) => (
+                            <span 
+                                key={i} 
+                                className={cn("px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider", pill.bg)}
+                            >
+                                {pill.text}
+                            </span>
+                        ))}
+                    </section>
 
-                            <ul className="flex flex-col gap-4 mt-4">
-                                {dayPlan.activities.map((activity: any, aIndex: number) => {
-                                    const key = `${dIndex}-${aIndex}`;
-                                    const isEditing = editingActivity === key;
-                                    const isGenerating = isRegenerating === key;
+                    {/* Overview Narrative */}
+                    <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-xs">
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">About This Journey</h2>
+                        <p className="text-base sm:text-lg font-normal text-gray-700 leading-relaxed">
+                            {description}
+                        </p>
+                    </section>
 
-                                    return (
-                                    <li key={aIndex} className="group relative">
-                                        <div className={cn("flex flex-col md:flex-row gap-4 p-4 rounded-xl border border-transparent transition-all", isEditing ? "bg-white border-primary shadow-sm" : "hover:bg-gray-50")}>
-                                            <span className="flex-shrink-0 p-18-semibold w-24 text-gray-500">{activity.time}</span>
-                                            
-                                            {isEditing ? (
-                                                <div className="flex-grow flex flex-col gap-3">
-                                                    <textarea 
-                                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-700 min-h-[80px]"
-                                                        value={activity.description}
-                                                        onChange={(e) => {
-                                                            const newItinerary = [...itinerary];
-                                                            newItinerary[dIndex].activities[aIndex].description = e.target.value;
-                                                            setItinerary(newItinerary);
-                                                            setHasUnsavedChanges(true);
-                                                        }}
-                                                    />
-                                                    <div className="flex flex-wrap gap-2 items-center justify-between">
-                                                        <div className="flex gap-2 items-center">
-                                                            <span className="text-sm font-medium text-gray-500 mr-2">🪄 AI Magic:</span>
-                                                            {['Adventurous', 'Relaxing', 'Budget-friendly'].map(tone => (
+                    {/* Daily Itinerary */}
+                    <section className="flex flex-col gap-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-gray-900">Daily Itinerary</h2>
+                            <span className="text-xs text-purple-600 bg-purple-50 border border-purple-200 px-3 py-1 rounded-full font-medium">
+                                ✨ AI Customizable
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            {itinerary?.map((dayPlan: any, dIndex: number) => (
+                                <div key={dIndex} className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs">
+                                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                                        <span className="bg-primary text-white font-bold px-3 py-1 rounded-lg text-sm">
+                                            Day {dayPlan.day}
+                                        </span>
+                                        <h3 className="text-lg font-bold text-gray-900">{dayPlan.location}</h3>
+                                    </div>
+
+                                    <ul className="flex flex-col gap-4">
+                                        {dayPlan.activities?.map((activity: any, aIndex: number) => {
+                                            const key = `${dIndex}-${aIndex}`;
+                                            const isEditing = editingActivity === key;
+                                            const isGenerating = isRegenerating === key;
+
+                                            return (
+                                                <li key={aIndex} className="group relative">
+                                                    <div className={cn(
+                                                        "flex flex-col md:flex-row gap-4 p-4 rounded-xl border transition-all",
+                                                        isEditing ? "bg-purple-50/50 border-purple-300 shadow-sm" : "bg-gray-50/60 border-transparent hover:border-gray-200"
+                                                    )}>
+                                                        <span className="flex-shrink-0 font-bold text-xs uppercase text-gray-500 w-24 pt-1">
+                                                            {activity.time}
+                                                        </span>
+                                                        
+                                                        {isEditing ? (
+                                                            <div className="flex-grow flex flex-col gap-3">
+                                                                <textarea 
+                                                                    className="w-full bg-white border border-purple-200 rounded-xl p-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-gray-800 text-sm min-h-[80px]"
+                                                                    value={activity.description}
+                                                                    onChange={(e) => {
+                                                                        const newItinerary = [...itinerary];
+                                                                        newItinerary[dIndex].activities[aIndex].description = e.target.value;
+                                                                        setItinerary(newItinerary);
+                                                                        setHasUnsavedChanges(true);
+                                                                    }}
+                                                                />
+                                                                <div className="flex flex-wrap gap-2 items-center justify-between">
+                                                                    <div className="flex flex-wrap gap-2 items-center">
+                                                                        <span className="text-xs font-semibold text-purple-700">🪄 AI Rewrite:</span>
+                                                                        {['Adventurous', 'Relaxing', 'Budget-friendly'].map(tone => (
+                                                                            <button 
+                                                                                key={tone}
+                                                                                onClick={() => handleRegenerate(dIndex, aIndex, tone.toLowerCase())}
+                                                                                disabled={isGenerating}
+                                                                                className="px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                                                                            >
+                                                                                {isGenerating ? 'Regenerating...' : tone}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                    <button 
+                                                                        onClick={() => setEditingActivity(null)}
+                                                                        className="text-xs font-bold text-primary hover:underline px-2 cursor-pointer"
+                                                                    >
+                                                                        Done
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex-grow flex items-start justify-between gap-4">
+                                                                <p className={cn("text-gray-700 text-sm sm:text-base leading-relaxed", isGenerating && "opacity-50 animate-pulse")}>
+                                                                    {activity.description}
+                                                                </p>
                                                                 <button 
-                                                                    key={tone}
-                                                                    onClick={() => handleRegenerate(dIndex, aIndex, tone.toLowerCase())}
-                                                                    disabled={isGenerating}
-                                                                    className="px-3 py-1.5 text-xs font-medium bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-full transition-colors disabled:opacity-50"
+                                                                    onClick={() => setEditingActivity(key)}
+                                                                    className="opacity-60 group-hover:opacity-100 transition-opacity p-2 bg-white border border-gray-200 hover:bg-primary hover:text-white rounded-lg flex-shrink-0 shadow-2xs cursor-pointer"
+                                                                    title="Edit Activity with AI"
                                                                 >
-                                                                    {isGenerating ? '✨...' : `Make ${tone}`}
+                                                                    ✏️
                                                                 </button>
-                                                            ))}
-                                                        </div>
-                                                        <button 
-                                                            onClick={() => setEditingActivity(null)}
-                                                            className="text-sm font-medium text-primary hover:underline px-2"
-                                                        >
-                                                            Done
-                                                        </button>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex-grow flex items-start justify-between">
-                                                    <p className={cn("text-gray-700", isGenerating && "opacity-50 animate-pulse")}>
-                                                        {activity.description}
-                                                    </p>
-                                                    <button 
-                                                        onClick={() => setEditingActivity(key)}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-4 p-2 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex-shrink-0 cursor-pointer"
-                                                        title="Edit Activity"
-                                                    >
-                                                        ✏️
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </li>
-                                )})}
-                            </ul>
-                        </li>
-                    ))}
-                </ul>
-
-                {visitTimeAndWeatherInfo.map((section) => (
-                    <section key={section.title} className="visit">
-                        <div>
-                            <h3>{section.title}</h3>
-
-                            <ul>
-                                {section.items?.map((item) => (
-                                    <li key={item}>
-                                        <p className="flex-grow">{item}</p>
-                                    </li>
-                                ))}
-                            </ul>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            ))}
                         </div>
                     </section>
-                ))}
 
-                <div className="flex">
-                    <ButtonComponent 
-                        className="button-class" 
-                        onClick={handleBookNow}
-                    >
-                        <span className="p-16-semibold text-white">
-                            Book Now
-                        </span>
-                        <span className="price-pill">{formatConvertedPrice()}</span>
-                    </ButtonComponent>
-                </div>
+                    {/* Best Time to Visit & Weather */}
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {visitTimeAndWeatherInfo.map((section) => (
+                            <div key={section.title} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs flex flex-col gap-3">
+                                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                                    <span>{section.title === 'Weather:' ? '🌤️' : '🗓️'}</span>
+                                    {section.title}
+                                </h3>
+                                <ul className="flex flex-col gap-2">
+                                    {section.items?.map((item: string) => (
+                                        <li key={item} className="text-sm text-gray-600 flex items-start gap-2">
+                                            <span className="text-primary font-bold">•</span>
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </section>
 
-                <hr className="my-10 border-gray-200" />
-
-                <section className="reviews-section w-full">
-                    <h2 className="p-30-bold text-dark-100 mb-6">Traveler Vibe Checks</h2>
-                    
-                    {reviews.length > 0 && (
-                        <div className="mb-8">
-                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
-                                <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4 mb-4">
-                                    <h3 className="font-semibold text-purple-900 flex items-center gap-2">
+                    {/* Traveler Vibe Checks & Reviews */}
+                    <section className="reviews-section w-full bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-xs flex flex-col gap-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-gray-900">Traveler Vibe Checks</h2>
+                            <span className="text-xs font-semibold px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-full">
+                                Community Reviews
+                            </span>
+                        </div>
+                        
+                        {reviews.length > 0 && (
+                            <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 p-6 rounded-2xl border border-purple-100">
+                                <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4 mb-3">
+                                    <h3 className="font-bold text-purple-900 flex items-center gap-2 text-base">
                                         ✨ AI Sentiment Summary
                                     </h3>
                                     {!aiSummary && (
                                         <button 
                                             onClick={handleSummarize}
                                             disabled={isSummarizing}
-                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 cursor-pointer"
+                                            className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                                         >
-                                            {isSummarizing ? 'Analyzing...' : 'Generate Summary'}
+                                            {isSummarizing ? 'Analyzing Vibe Checks...' : 'Generate AI Summary'}
                                         </button>
                                     )}
                                 </div>
                                 {aiSummary ? (
-                                    <p className="text-purple-800 text-lg leading-relaxed">{aiSummary}</p>
+                                    <p className="text-purple-900 text-sm sm:text-base leading-relaxed">{aiSummary}</p>
                                 ) : (
-                                    <p className="text-purple-600/70 text-sm">Click generate to see what travelers really think about this trip, powered by Gemini AI.</p>
+                                    <p className="text-purple-700/80 text-xs">Click generate to see what travelers loved most about this destination, synthesized by Gemini AI.</p>
                                 )}
                             </div>
-                        </div>
-                    )}
-
-                    <div className="grid gap-4 mb-10">
-                        {reviews.length === 0 ? (
-                            <p className="text-gray-500 italic">No vibe checks yet. Be the first!</p>
-                        ) : (
-                            reviews.map((r: any, i: number) => (
-                                <div key={i} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-3">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                                {r.userName?.charAt(0)?.toUpperCase() || 'T'}
-                                            </div>
-                                            <span className="font-medium text-gray-900">{r.userName}</span>
-                                        </div>
-                                        <span className="bg-gray-50 px-3 py-1 rounded-full text-sm font-medium border border-gray-200">
-                                            {r.vibe}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-700 leading-relaxed">{r.comment}</p>
-                                </div>
-                            ))
                         )}
-                    </div>
 
-                    {/* Vibe Check Form for Logged In User OR Guest */}
-                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-gray-900">Leave a Vibe Check</h3>
-                            {currentUser?.$id ? (
-                                <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200">
-                                    Posting as {currentUser.name || 'Traveler'}
-                                </span>
+                        <div className="grid gap-4">
+                            {reviews.length === 0 ? (
+                                <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    <p className="text-gray-500 italic text-sm">No vibe checks yet. Be the first to share your experience!</p>
+                                </div>
                             ) : (
-                                <button
-                                    type="button"
-                                    onClick={loginWithGoogle}
-                                    className="flex items-center gap-1.5 text-xs text-primary bg-white px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
-                                >
-                                    <img src="/assets/icons/google.svg" alt="google" className="size-3.5" />
-                                    <span>Sign in for verified badge</span>
-                                </button>
+                                reviews.map((r: any, i: number) => (
+                                    <div key={i} className="bg-gray-50/70 p-4 rounded-xl border border-gray-100 flex flex-col gap-2">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                                    {r.userName?.charAt(0)?.toUpperCase() || 'T'}
+                                                </div>
+                                                <span className="font-semibold text-sm text-gray-900">{r.userName}</span>
+                                            </div>
+                                            <span className="bg-white px-2.5 py-0.5 rounded-full text-xs font-semibold border border-gray-200 shadow-2xs">
+                                                {r.vibe}
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-700 text-sm leading-relaxed">{r.comment}</p>
+                                    </div>
+                                ))
                             )}
                         </div>
-                        <form onSubmit={handleAddReview} className="flex flex-col gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">What was the primary vibe?</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
-                                        <button
-                                            key={v}
-                                            type="button"
-                                            onClick={() => setVibe(v)}
-                                            className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all border cursor-pointer", vibe === v ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100")}
-                                        >
-                                            {v}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <textarea 
-                                    className="w-full bg-white border border-gray-200 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-700 min-h-[100px]"
-                                    placeholder="Share your experience (e.g., Best local foods, secret viewpoint, sunset timing, activity highlights)..."
-                                    value={comment}
-                                    onChange={e => setComment(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="flex justify-end">
-                                <button 
-                                    type="submit" 
-                                    disabled={isSubmittingReview || !comment.trim()}
-                                    className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
-                                >
-                                    {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
 
-            </section>
+                        {/* Vibe Check Form */}
+                        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 mt-2">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-sm text-gray-900">Leave a Vibe Check</h3>
+                                {currentUser?.$id ? (
+                                    <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 font-medium">
+                                        Posting as {currentUser.name || 'Traveler'}
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={loginWithGoogle}
+                                        className="flex items-center gap-1.5 text-xs text-primary bg-white px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer font-medium"
+                                    >
+                                        <img src="/assets/icons/google.svg" alt="google" className="size-3.5" />
+                                        <span>Sign in for verified badge</span>
+                                    </button>
+                                )}
+                            </div>
+                            <form onSubmit={handleAddReview} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-2">What was the primary vibe?</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
+                                            <button
+                                                key={v}
+                                                type="button"
+                                                onClick={() => setVibe(v)}
+                                                className={cn(
+                                                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer",
+                                                    vibe === v ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                                                )}
+                                            >
+                                                {v}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <textarea 
+                                        className="w-full bg-white border border-gray-200 rounded-xl p-3.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-800 text-sm min-h-[90px]"
+                                        placeholder="Share your experience (e.g., Best local foods, secret viewpoint, sunset timing, activity highlights)..."
+                                        value={comment}
+                                        onChange={e => setComment(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <button 
+                                        type="submit" 
+                                        disabled={isSubmittingReview || !comment.trim()}
+                                        className="bg-primary text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                                    >
+                                        {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+
+                {/* Right Sticky Booking Sidebar */}
+                <aside className="w-full lg:w-[340px] flex-shrink-0 lg:sticky lg:top-28 flex flex-col gap-6">
+                    <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col gap-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Price</span>
+                                <h2 className="text-3xl font-black text-primary mt-1">{formatConvertedPrice()}</h2>
+                            </div>
+                            <span className="bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-2.5 py-1 rounded-full">
+                                Instant Booking
+                            </span>
+                        </div>
+
+                        {/* Live Currency Selector */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-gray-500">Select Currency</label>
+                            <div className="grid grid-cols-5 gap-1 bg-gray-100 p-1 rounded-xl">
+                                {(['USD', 'INR', 'EUR', 'GBP', 'AED'] as const).map(curr => (
+                                    <button
+                                        key={curr}
+                                        type="button"
+                                        onClick={() => setSelectedCurrency(curr)}
+                                        className={cn(
+                                            "py-1.5 text-xs font-bold rounded-lg transition-all text-center",
+                                            selectedCurrency === curr
+                                                ? "bg-white text-primary shadow-xs"
+                                                : "text-gray-500 hover:text-gray-800"
+                                        )}
+                                    >
+                                        {curr}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="border-t border-b border-gray-100 py-4 flex flex-col gap-3 text-sm text-gray-600">
+                            <div className="flex justify-between">
+                                <span>Duration:</span>
+                                <span className="font-semibold text-gray-900">{duration} Days</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Travel Style:</span>
+                                <span className="font-semibold text-gray-900">{travelStyle}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Group:</span>
+                                <span className="font-semibold text-gray-900">{groupType}</span>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={handleBookNow}
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-2xl transition-all shadow-md hover:shadow-lg text-center cursor-pointer text-base"
+                        >
+                            Book This Trip Now ✈️
+                        </button>
+
+                        <div className="flex flex-col gap-2 pt-2">
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span>🛡️</span>
+                                <span>Secure Stripe Payment & Flight Ticket</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span>✨</span>
+                                <span>AI-Powered Itinerary Customization</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
             </div>
 
-            <section className="flex flex-col gap-6">
-                <h2 className="p-24-semibold text-dark-100">Popular Trips</h2>
-
-                <div className="trip-grid">
+            {/* Bottom Popular Trips Grid */}
+            <section className="flex flex-col gap-6 mt-20 w-full">
+                <h2 className="text-2xl font-bold text-gray-900">Explore More Popular Trips</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {allTrips.map((trip) => (
                         <TripCard
                             key={trip.id}
@@ -584,18 +653,19 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
             
             {/* Floating Action Bar for Unsaved Changes */}
             {hasUnsavedChanges && (
-                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] p-4 flex justify-between items-center z-50 px-8">
-                    <p className="font-medium text-gray-700">You have unsaved changes to your itinerary.</p>
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white border border-gray-800 shadow-2xl rounded-2xl p-4 flex items-center gap-6 z-50 px-6 animate-bounce">
+                    <p className="font-medium text-sm text-gray-200">You have unsaved changes to your itinerary.</p>
                     <button 
                         onClick={handleSaveTrip}
                         disabled={isSaving}
-                        className="bg-primary text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                        className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-primary/90 transition-all disabled:opacity-50 cursor-pointer"
                     >
-                        {isSaving ? 'Saving...' : 'Save Trip'}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             )}
         </main>
-    )
-}
-export default TravelDetail
+    );
+};
+
+export default TravelDetail;
