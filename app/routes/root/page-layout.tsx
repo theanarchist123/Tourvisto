@@ -7,10 +7,36 @@ export async function clientLoader() {
     try {
         const user = await account.get();
 
-        if(!user.$id) return null;
+        if(!user || !user.$id) return null;
 
         const existingUser = await getExistingUser(user.$id);
-        return existingUser?.$id ? existingUser : await storeUserData();
+        if (existingUser?.$id) {
+            return {
+                ...user,
+                ...existingUser,
+                $id: user.$id,
+                accountId: user.$id
+            };
+        }
+
+        const newUser = await storeUserData();
+        if (newUser?.$id) {
+            return {
+                ...user,
+                ...newUser,
+                $id: user.$id,
+                accountId: user.$id
+            };
+        }
+
+        // Fallback: If database document creation/lookup fails, return the authenticated account object!
+        return {
+            $id: user.$id,
+            accountId: user.$id,
+            name: user.name,
+            email: user.email,
+            status: (user as any).status || 'user'
+        };
     } catch (e: any) {
         // Appwrite throws 401 for guests, which is expected. Don't log it.
         if (e?.code !== 401) {

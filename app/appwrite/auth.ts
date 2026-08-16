@@ -26,22 +26,35 @@ export const storeUserData = async () => {
             ? await getGooglePicture(providerAccessToken)
             : null;
 
-        const createdUser = await database.createDocument(
-            appwriteConfig.databaseId,
-            appwriteConfig.userCollectionId,
-            ID.unique(),
-            {
+        try {
+            const createdUser = await database.createDocument(
+                appwriteConfig.databaseId,
+                appwriteConfig.userCollectionId,
+                ID.unique(),
+                {
+                    accountId: user.$id,
+                    email: user.email,
+                    name: user.name,
+                    imageUrl: profilePicture,
+                    joinedAt: new Date().toISOString(),
+                }
+            );
+
+            return createdUser;
+        } catch (dbError) {
+            console.warn("Could not save user to database collection, falling back to account object:", dbError);
+            return {
+                $id: user.$id,
                 accountId: user.$id,
                 email: user.email,
                 name: user.name,
                 imageUrl: profilePicture,
                 joinedAt: new Date().toISOString(),
-            }
-        );
-
-        if (!createdUser.$id) redirect("/sign-in");
+            };
+        }
     } catch (error) {
         console.error("Error storing user data:", error);
+        return null;
     }
 };
 
@@ -88,23 +101,40 @@ export const logoutUser = async () => {
 export const getUser = async () => {
     try {
         const user = await account.get();
-        if (!user) return null; // Changed from redirect to return null
+        if (!user || !user.$id) return null;
 
-        const { documents } = await database.listDocuments(
-            appwriteConfig.databaseId,
-            appwriteConfig.userCollectionId,
-            [
-                Query.equal("accountId", user.$id),
-                Query.select(["name", "email", "imageUrl", "joinedAt", "accountId"]),
-            ]
-        );
+        try {
+            const { documents } = await database.listDocuments(
+                appwriteConfig.databaseId,
+                appwriteConfig.userCollectionId,
+                [
+                    Query.equal("accountId", user.$id),
+                    Query.select(["name", "email", "imageUrl", "joinedAt", "accountId"]),
+                ]
+            );
 
-        return documents.length > 0 ? documents[0] : null; // Changed from redirect to return null
+            if (documents.length > 0) {
+                return {
+                    ...user,
+                    ...documents[0],
+                    $id: user.$id,
+                    accountId: user.$id
+                };
+            }
+        } catch (dbError) {
+            // If database lookup fails, fall back to account object
+        }
+
+        return {
+            $id: user.$id,
+            accountId: user.$id,
+            name: user.name,
+            email: user.email,
+        };
     } catch (error: any) {
         if (error?.code !== 401) {
             console.error("Error fetching user:", error);
         }
-        // Don't redirect on error, just return null for unauthenticated users
         return null;
     }
 };
