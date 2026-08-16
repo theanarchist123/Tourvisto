@@ -5,11 +5,12 @@ import { useNavigate, redirect } from "react-router";
 import { cn } from "~/lib/utils";
 import { account } from "~/appwrite/client";
 
-export async function clientLoader() {
+export async function clientLoader({ serverLoader }: any) {
     try {
         const user = await account.get();
         if (!user.$id) return redirect('/sign-in');
-        return null;
+        const serverData = await serverLoader();
+        return serverData;
     } catch (e) {
         return redirect('/sign-in');
     }

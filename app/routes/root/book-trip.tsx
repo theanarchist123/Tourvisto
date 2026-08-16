@@ -6,11 +6,12 @@ import { account } from "~/appwrite/client";
 import { cn, parseTripData } from "~/lib/utils";
 import { getPublicTripById } from "~/appwrite/public-trips";
 
-export async function clientLoader() {
+export async function clientLoader({ serverLoader }: any) {
     try {
         const user = await account.get();
         if (!user.$id) return redirect('/sign-in');
-        return null;
+        const serverData = await serverLoader();
+        return serverData;
     } catch (e) {
         return redirect('/sign-in');
     }
