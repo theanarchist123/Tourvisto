@@ -1,4 +1,4 @@
-import {Outlet, redirect, useNavigate} from "react-router";
+import {Outlet, redirect, useNavigate, useLoaderData} from "react-router";
 import {getExistingUser, logoutUser, storeUserData} from "~/appwrite/auth";
 import {account} from "~/appwrite/client";
 import RootNavbar from "../../../components/RootNavbar";
@@ -65,10 +65,11 @@ export async function clientLoader() {
 }
 
 const PageLayout = () => {
+    const user = useLoaderData();
     return (
         <div className="bg-light-200">
             <RootNavbar />
-            <Outlet />
+            <Outlet context={{ user }} />
         </div>
     )
 }

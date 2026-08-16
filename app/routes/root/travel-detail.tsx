@@ -1,6 +1,6 @@
-import {Link, type LoaderFunctionArgs, useNavigate} from "react-router";
+import {Link, type LoaderFunctionArgs, useNavigate, useOutletContext} from "react-router";
 import {getPublicTrips, getPublicTripById} from "~/appwrite/public-trips";
-import {getUser} from "~/appwrite/auth";
+import {getUser, loginWithGoogle} from "~/appwrite/auth";
 import {cn, getFirstWord, parseTripData} from "~/lib/utils";
 import {Header, InfoPill, TripCard} from "../../../components";
 import {ButtonComponent, ChipDirective, ChipListComponent, ChipsDirective} from "@syncfusion/ej2-react-buttons";
@@ -40,16 +40,27 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     }
 }
 
+const CURRENCY_RATES: Record<string, { symbol: string; rate: number }> = {
+    USD: { symbol: '$', rate: 1 },
+    INR: { symbol: '₹', rate: 86.5 },
+    EUR: { symbol: '€', rate: 0.92 },
+    GBP: { symbol: '£', rate: 0.79 },
+    AED: { symbol: 'AED ', rate: 3.67 },
+};
+
 const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     const navigate = useNavigate();
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     
+    // Get user from layout outlet context (client-authenticated) with fallback to loader
+    const context = useOutletContext<{ user?: any }>();
+    const currentUser = context?.user || loaderData?.user;
+    
     const imageUrls = loaderData?.trip?.imageUrls || [];
     const tripData = parseTripData(loaderData?.trip?.tripDetail);
     const tripId = loaderData?.trip?.$id;
-    const currentUser = loaderData?.user;
     
-    const isOwner = currentUser?.$id && loaderData?.trip?.userId === currentUser?.$id;
+    const isOwner = currentUser?.$id && (loaderData?.trip?.userId === currentUser?.$id || !loaderData?.trip?.userId);
 
     const [itinerary, setItinerary] = useState(tripData?.itinerary || []);
     const [editingActivity, setEditingActivity] = useState<string | null>(null);
@@ -64,12 +75,49 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     const [aiSummary, setAiSummary] = useState<string | null>(null);
     const [isSummarizing, setIsSummarizing] = useState(false);
 
+    // Currency Switcher state
+    const [selectedCurrency, setSelectedCurrency] = useState<'USD' | 'INR' | 'EUR' | 'GBP' | 'AED'>('USD');
+    // Social Share feedback
+    const [copiedShareLink, setCopiedShareLink] = useState(false);
+
     const {
         name, duration, travelStyle,
         groupType, budget, interests, estimatedPrice,
         description, bestTimeToVisit, weatherInfo, country
     } = tripData || {};
     const allTrips = loaderData.allTrips as Trip[] | [];
+
+    // Format price in chosen currency
+    const formatConvertedPrice = () => {
+        if (!estimatedPrice) return 'N/A';
+        const numeric = Number(String(estimatedPrice).replace(/[^0-9.]/g, '')) || 0;
+        if (!numeric) return estimatedPrice;
+        const rateInfo = CURRENCY_RATES[selectedCurrency];
+        const converted = Math.round(numeric * rateInfo.rate);
+        return `${rateInfo.symbol}${converted.toLocaleString()}`;
+    };
+
+    const handleShareTrip = async () => {
+        const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Tourvisto - ${name}`,
+                    text: `Check out this amazing ${duration}-day trip itinerary to ${country || name} on Tourvisto!`,
+                    url: shareUrl,
+                });
+                return;
+            } catch (err) {
+                // Fallback to clipboard
+            }
+        }
+        
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl);
+            setCopiedShareLink(true);
+            setTimeout(() => setCopiedShareLink(false), 3000);
+        }
+    };
 
     if (!tripData) {
         return (
@@ -143,10 +191,8 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
 
     const handleAddReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentUser) {
-            alert('Please sign in to leave a vibe check.');
-            return;
-        }
+        if (!comment.trim()) return;
+
         setIsSubmittingReview(true);
         try {
             const res = await fetch('/api/add-review', {
@@ -156,7 +202,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     tripId,
                     vibe,
                     comment,
-                    userName: currentUser.name || 'Traveler'
+                    userName: currentUser?.name || 'Fellow Traveler'
                 })
             });
             const data = await res.json();
@@ -209,10 +255,21 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     return (
         <main className="travel-detail pt-40 wrapper">
             <div className="travel-div">
-                <Link to="/" className="back-link">
-                    <img src="/assets/icons/arrow-left.svg" alt="back icon" />
-                    <span>Go back</span>
-                </Link>
+                <div className="flex justify-between items-center w-full mb-6">
+                    <Link to="/" className="back-link !mb-0">
+                        <img src="/assets/icons/arrow-left.svg" alt="back icon" />
+                        <span>Go back</span>
+                    </Link>
+
+                    {/* Quick Social Share */}
+                    <button 
+                        type="button"
+                        onClick={handleShareTrip}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all cursor-pointer"
+                    >
+                        <span>{copiedShareLink ? '✅ Link Copied!' : '🔗 Share Trip'}</span>
+                    </button>
+                </div>
 
 
             <section className="container wrapper-md">
@@ -226,7 +283,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
 
                         <InfoPill
                             text={itinerary?.slice(0,4)
-                                .map((item) => item.location).join(', ') || ''}
+                                .map((item: any) => item.location).join(', ') || ''}
                             image="/assets/icons/location-mark.svg"
                         />
                     </div>
@@ -256,10 +313,10 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                             ))}
                         </ChipsDirective>
                     </ChipListComponent>
-
                 </section>
 
-                <section className="title">
+                {/* Title & Live Currency Converter */}
+                <section className="title flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <article>
                         <h3>
                             {duration}-Day {country} {travelStyle} Trip
@@ -267,7 +324,26 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         <p>{budget}, {groupType} and {interests}</p>
                     </article>
 
-                    <h2>{estimatedPrice}</h2>
+                    <div className="flex flex-col md:items-end gap-2">
+                        <h2 className="text-3xl font-bold text-primary">{formatConvertedPrice()}</h2>
+                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                            {(['USD', 'INR', 'EUR', 'GBP', 'AED'] as const).map(curr => (
+                                <button
+                                    key={curr}
+                                    type="button"
+                                    onClick={() => setSelectedCurrency(curr)}
+                                    className={cn(
+                                        "px-2 py-1 text-xs font-semibold rounded transition-all",
+                                        selectedCurrency === curr
+                                            ? "bg-white text-primary shadow-xs font-bold"
+                                            : "text-gray-500 hover:text-gray-800"
+                                    )}
+                                >
+                                    {curr}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </section>
 
                 <p className="text-sm md:text-lg font-normal text-dark-400">{description}</p>
@@ -329,15 +405,13 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                     <p className={cn("text-gray-700", isGenerating && "opacity-50 animate-pulse")}>
                                                         {activity.description}
                                                     </p>
-                                                    {isOwner && (
-                                                        <button 
-                                                            onClick={() => setEditingActivity(key)}
-                                                            className="opacity-0 group-hover:opacity-100 transition-opacity ml-4 p-2 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex-shrink-0"
-                                                            title="Edit Activity"
-                                                        >
-                                                            ✏️
-                                                        </button>
-                                                    )}
+                                                    <button 
+                                                        onClick={() => setEditingActivity(key)}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-4 p-2 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex-shrink-0 cursor-pointer"
+                                                        title="Edit Activity"
+                                                    >
+                                                        ✏️
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -372,7 +446,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         <span className="p-16-semibold text-white">
                             Book Now
                         </span>
-                        <span className="price-pill">{estimatedPrice}</span>
+                        <span className="price-pill">{formatConvertedPrice()}</span>
                     </ButtonComponent>
                 </div>
 
@@ -392,7 +466,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                         <button 
                                             onClick={handleSummarize}
                                             disabled={isSummarizing}
-                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50"
+                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 cursor-pointer"
                                         >
                                             {isSummarizing ? 'Analyzing...' : 'Generate Summary'}
                                         </button>
@@ -416,7 +490,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                                {r.userName.charAt(0).toUpperCase()}
+                                                {r.userName?.charAt(0)?.toUpperCase() || 'T'}
                                             </div>
                                             <span className="font-medium text-gray-900">{r.userName}</span>
                                         </div>
@@ -430,46 +504,61 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         )}
                     </div>
 
-                    {currentUser && (
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                            <h3 className="font-semibold text-gray-900 mb-4">Leave a Vibe Check</h3>
-                            <form onSubmit={handleAddReview} className="flex flex-col gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">What was the primary vibe?</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
-                                            <button
-                                                key={v}
-                                                type="button"
-                                                onClick={() => setVibe(v)}
-                                                className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all border", vibe === v ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100")}
-                                            >
-                                                {v}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <textarea 
-                                        className="w-full bg-white border border-gray-200 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-700 min-h-[100px]"
-                                        placeholder="Share your experience..."
-                                        value={comment}
-                                        onChange={e => setComment(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="flex justify-end">
-                                    <button 
-                                        type="submit" 
-                                        disabled={isSubmittingReview || !comment.trim()}
-                                        className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-                                    >
-                                        {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
-                                    </button>
-                                </div>
-                            </form>
+                    {/* Vibe Check Form for Logged In User OR Guest */}
+                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-900">Leave a Vibe Check</h3>
+                            {currentUser?.$id ? (
+                                <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200">
+                                    Posting as {currentUser.name || 'Traveler'}
+                                </span>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={loginWithGoogle}
+                                    className="flex items-center gap-1.5 text-xs text-primary bg-white px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
+                                >
+                                    <img src="/assets/icons/google.svg" alt="google" className="size-3.5" />
+                                    <span>Sign in for verified badge</span>
+                                </button>
+                            )}
                         </div>
-                    )}
+                        <form onSubmit={handleAddReview} className="flex flex-col gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">What was the primary vibe?</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['🌅 Scenic', '🌮 Foodie', '🏃‍♂️ Active', '🏛️ Cultural', '🎉 Wild', '🧘 Relaxing'].map(v => (
+                                        <button
+                                            key={v}
+                                            type="button"
+                                            onClick={() => setVibe(v)}
+                                            className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all border cursor-pointer", vibe === v ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100")}
+                                        >
+                                            {v}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <textarea 
+                                    className="w-full bg-white border border-gray-200 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-gray-700 min-h-[100px]"
+                                    placeholder="Share your experience (e.g., Best local foods, secret viewpoint, sunset timing, activity highlights)..."
+                                    value={comment}
+                                    onChange={e => setComment(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <button 
+                                    type="submit" 
+                                    disabled={isSubmittingReview || !comment.trim()}
+                                    className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                                >
+                                    {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </section>
 
             </section>
