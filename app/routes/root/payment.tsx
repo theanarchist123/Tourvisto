@@ -72,6 +72,9 @@ const Payment = ({ loaderData }: { loaderData: { booking: any } }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Calculate total amount early so handlePayment can use it
+    const totalAmount = booking ? booking.tripPrice * booking.numberOfMembers : 0;
+
     const handlePayment = async () => {
         setLoading(true);
         setError(null);
@@ -82,7 +85,7 @@ const Payment = ({ loaderData }: { loaderData: { booking: any } }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     bookingId: booking.$id,
-                    amount: booking.totalAmount,
+                    amount: totalAmount,
                     currency: 'inr',
                     description: `Payment for trip to ${booking.destination}`,
                     metadata: {
@@ -118,7 +121,6 @@ const Payment = ({ loaderData }: { loaderData: { booking: any } }) => {
     }
 
     const memberNames = JSON.parse(booking.memberNames);
-    const totalAmount = booking.tripPrice * booking.numberOfMembers;
 
     return (
         <main className="flex flex-col gap-10 pb-20 pt-40 wrapper">
