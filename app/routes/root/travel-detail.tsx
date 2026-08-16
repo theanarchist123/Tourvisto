@@ -51,6 +51,15 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
     } = tripData || {};
     const allTrips = loaderData.allTrips as Trip[] | [];
 
+    if (!tripData) {
+        return (
+            <main className="travel-detail pt-40 wrapper text-center min-h-screen">
+                <h1 className="p-40-semibold text-dark-100">Trip not found</h1>
+                <Link to="/" className="text-primary mt-4 inline-block">Go back to home</Link>
+            </main>
+        )
+    }
+
     const handleBookNow = () => {
         if (!tripId) {
             alert('Trip ID not found');
@@ -124,28 +133,6 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         </ChipsDirective>
                     </ChipListComponent>
 
-                    <ul className="flex gap-1 items-center">
-                        {Array(5).fill('null').map((_, index) => (
-                            <li key={index}>
-                                <img
-                                    src="/assets/icons/star.svg"
-                                    alt="star"
-                                    className="size-[18px]"
-                                />
-                            </li>
-                        ))}
-
-                        <li className="ml-1">
-                            <ChipListComponent>
-                                <ChipsDirective>
-                                    <ChipDirective
-                                        text="4.9/5"
-                                        cssClass="!bg-yellow-50 !text-yellow-700"
-                                    />
-                                </ChipsDirective>
-                            </ChipListComponent>
-                        </li>
-                    </ul>
                 </section>
 
                 <section className="title">

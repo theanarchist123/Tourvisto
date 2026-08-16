@@ -1,8 +1,19 @@
 import { Header } from "../../../components";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, redirect } from "react-router";
 import { cn } from "~/lib/utils";
+import { account } from "~/appwrite/client";
+
+export async function clientLoader() {
+    try {
+        const user = await account.get();
+        if (!user.$id) return redirect('/sign-in');
+        return null;
+    } catch (e) {
+        return redirect('/sign-in');
+    }
+}
 import { Client, Databases } from 'appwrite';
 import { getPublicTripById } from "~/appwrite/public-trips";
 

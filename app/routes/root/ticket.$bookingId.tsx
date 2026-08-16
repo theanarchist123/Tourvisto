@@ -1,6 +1,18 @@
 import { Header } from "../../../components";
 import { useState, useEffect } from "react";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import { redirect } from "react-router";
+import { account } from "~/appwrite/client";
+
+export async function clientLoader() {
+    try {
+        const user = await account.get();
+        if (!user.$id) return redirect('/sign-in');
+        return null;
+    } catch (e) {
+        return redirect('/sign-in');
+    }
+}
 
 import { Client, Databases } from 'appwrite';
 
@@ -240,8 +252,8 @@ const Ticket = ({ loaderData }: { loaderData: { booking: any } }) => {
                     {/* Barcode/QR Code Placeholder */}
                     <div className="text-center border-t-2 border-dashed border-gray-300 pt-6 mt-6">
                         <p className="text-sm text-gray-600 mb-2">Boarding Pass Code</p>
-                        <div className="font-mono text-2xl tracking-widest bg-gray-100 p-4 rounded inline-block">
-                            ||||| |||| ||||| |||| |||||
+                        <div className="font-mono text-lg font-bold tracking-widest bg-gray-100 px-6 py-4 rounded inline-block border-2 border-gray-300 border-dashed">
+                            SCAN-{travelId}
                         </div>
                         <p className="text-xs text-gray-500 mt-2">Present this ticket at the airport</p>
                     </div>

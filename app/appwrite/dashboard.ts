@@ -77,8 +77,8 @@ export const getUsersAndTripsStats = async (): Promise<DashboardStats> => {
                 undefined
             ),
             lastMonth: filterByDate(
-                filterUsersByRole('user'),
-                'joinedAt',
+                trips.documents,
+                'createdAt',
                 startPrev,
                 endPrev
             )

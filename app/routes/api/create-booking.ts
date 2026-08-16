@@ -15,8 +15,6 @@ export const action = async ({ request }: { request: Request }) => {
     try {
         const bookingData = await request.json();
         
-        console.log('Received booking data:', bookingData);
-        
         // Validate required fields
         if (!bookingData.tripId || !bookingData.userId || !bookingData.travelerName || 
             !bookingData.email || !bookingData.phone || !bookingData.travelDate) {
@@ -77,18 +75,8 @@ export const action = async ({ request }: { request: Request }) => {
         
         const seatAssignments = generateSeatAssignments(bookingData.numberOfMembers);
         
-        console.log('Generated flight details:', flightDetails);
-        console.log('Generated seat assignments:', seatAssignments);
-        
         // Create booking document
         const bookingsCollectionId = import.meta.env.VITE_APPWRITE_BOOKINGS_COLLECTION_ID!;
-        
-        console.log('About to create booking with:', {
-            databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
-            collectionId: bookingsCollectionId,
-            tripId: bookingData.tripId,
-            userId: bookingData.userId
-        });
         
         // Extract only essential trip details to avoid size limit
         const essentialTripDetails = {
@@ -102,7 +90,6 @@ export const action = async ({ request }: { request: Request }) => {
         };
         
         const tripDetailsString = JSON.stringify(essentialTripDetails);
-        console.log('Essential trip details length:', tripDetailsString.length);
         
         const bookingDocument = {
             tripId: bookingData.tripId,
@@ -125,16 +112,12 @@ export const action = async ({ request }: { request: Request }) => {
             createdAt: new Date().toISOString()
         };
         
-        console.log('Booking document to create:', bookingDocument);
-        
         const booking = await serverDatabase.createDocument(
             import.meta.env.VITE_APPWRITE_DATABASE_ID!,
             bookingsCollectionId,
             ID.unique(),
             bookingDocument
         );
-        
-        console.log('Booking created successfully:', booking);
 
         return Response.json({ 
             id: booking.$id,

@@ -1,10 +1,20 @@
 import { Header } from "../../../components";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, redirect } from "react-router";
 import { account } from "~/appwrite/client";
 import { cn, parseTripData } from "~/lib/utils";
 import { getPublicTripById } from "~/appwrite/public-trips";
+
+export async function clientLoader() {
+    try {
+        const user = await account.get();
+        if (!user.$id) return redirect('/sign-in');
+        return null;
+    } catch (e) {
+        return redirect('/sign-in');
+    }
+}
 
 // USD to INR conversion rate (approximate - in real app, fetch from live API)
 const USD_TO_INR_RATE = 83.50;
@@ -63,7 +73,7 @@ export const loader = async ({ params }: { params: { tripId: string } }) => {
             ...trip,
             ...tripData,
             destination: tripData?.name || trip.destination || 'Unknown Destination',
-            price: tripData?.estimatedPrice?.replace(/[^0-9]/g, '') || '50000',
+            price: tripData?.basePrice || tripData?.estimatedPrice?.replace(/[^0-9]/g, '') || '50000',
             duration: tripData?.duration || trip.duration || 5
         };
         
@@ -171,9 +181,6 @@ const BookTrip = ({ loaderData }: { loaderData: { trip: any; airports: any[] } }
             const booking = await bookingResponse.json();
             
             if (booking.id) {
-                // Calculate total amount
-                const totalAmount = Number(trip.price) * formData.numberOfMembers;
-                
                 // Create Stripe payment session directly
                 const paymentResponse = await fetch('/api/create-payment', {
                     method: 'POST',

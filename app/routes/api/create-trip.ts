@@ -6,6 +6,10 @@ import {ID} from "appwrite";
 
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+    if (request.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405 });
+    }
+
     try {
         const {
             country,
@@ -38,6 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         "name": "A descriptive title for the trip",
         "description": "A brief description of the trip and its highlights not exceeding 100 words",
         "estimatedPrice": "Lowest average price for the trip in USD, e.g.$price",
+        "basePrice": 1200,
         "duration": ${numberOfDays},
         "budget": "${budget}",
         "travelStyle": "${travelStyle}",
@@ -88,7 +93,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 textResult = await model.generateContent([prompt]);
                 if (textResult) break;
             } catch (err: any) {
-                console.warn(`Model ${modelName} failed, trying next model...`, err?.message);
+                console.warn(`Model ${modelName} failed, trying next...`);
             }
         }
 
@@ -104,7 +109,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         const trip = parseMarkdownToJson(responseText);
 
         if (!trip) {
-            console.error("Failed to parse trip JSON from Gemini response:", responseText);
+            console.error("Failed to parse trip JSON from Gemini response");
             return new Response(
                 JSON.stringify({ error: "Failed to parse generated travel itinerary from AI response." }),
                 { status: 500, headers: { "Content-Type": "application/json" } }

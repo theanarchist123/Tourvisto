@@ -1,21 +1,14 @@
 import Stripe from 'stripe';
 
-// Debug: Log available environment variables
-console.log('Available environment variables:');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('STRIPE_SECRET_KEY exists:', !!process.env.STRIPE_SECRET_KEY);
-console.log('All env keys:', Object.keys(process.env).filter(key => key.includes('STRIPE')));
+// Initialize Stripe
 
 // Get the Stripe secret key from environment variables
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
     console.error('STRIPE_SECRET_KEY is not defined in environment variables');
-    console.error('Available env vars:', Object.keys(process.env));
     throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
 }
-
-console.log('Stripe key found, initializing Stripe...');
 
 export const stripe = new Stripe(stripeSecretKey, {
     apiVersion: '2025-05-28.basil' // Using the correct API version

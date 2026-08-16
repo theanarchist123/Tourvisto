@@ -7,7 +7,7 @@ const RootNavbar = () => {
     const navigate = useNavigate();
     const location = useLocation()
     const params = useParams();
-    const user = useLoaderData();
+    const user: any = useLoaderData() || {};
 
     const handleLogout = async () => {
         await logoutUser();
@@ -23,7 +23,7 @@ const RootNavbar = () => {
                 </Link>
 
                 <aside>
-                    {user.status === 'admin' && (
+                    {user?.status === 'admin' && (
                         <Link to="/dashboard" className={cn('text-base font-normal text-white', {"text-dark-100": location.pathname.startsWith('/travel')})}>
                             Admin Panel
                         </Link>
@@ -40,7 +40,7 @@ const RootNavbar = () => {
                                 target.src = '/assets/images/david.webp';
                             }}
                         />
-                    ) : (
+                    ) : user?.$id ? (
                         <div 
                             className="rounded-full size-8 aspect-square flex items-center justify-center text-white text-sm font-semibold"
                             style={{
@@ -49,15 +49,21 @@ const RootNavbar = () => {
                         >
                             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
+                    ) : (
+                        <Link to="/sign-in" className={cn("text-base font-normal text-white bg-primary px-4 py-2 rounded-full", {"text-dark-100": location.pathname.startsWith('/travel')})}>
+                            Sign In
+                        </Link>
                     )}
 
-                    <button onClick={handleLogout} className="cursor-pointer">
-                        <img
-                            src="/assets/icons/logout.svg"
-                            alt="logout"
-                            className="size-6 rotate-180"
-                        />
-                    </button>
+                    {user?.$id && (
+                        <button onClick={handleLogout} className="cursor-pointer">
+                            <img
+                                src="/assets/icons/logout.svg"
+                                alt="logout"
+                                className="size-6 rotate-180"
+                            />
+                        </button>
+                    )}
                 </aside>
             </header>
         </nav>

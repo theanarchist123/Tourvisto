@@ -1,7 +1,10 @@
 import { Query } from "appwrite";
 import { database, appwriteConfig } from "~/appwrite/client";
 
-export const action = async ({ params }: { params: { userId: string } }) => {
+export const action = async ({ request, params }: { request: Request; params: { userId: string } }) => {
+    if (request.method !== 'DELETE' && request.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405 });
+    }
     try {
         const { userId } = params;
         

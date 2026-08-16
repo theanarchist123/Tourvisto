@@ -10,8 +10,11 @@ const convertUSDToINR = (usdAmount: number): number => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+    if (request.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405 });
+    }
+
     try {
-        console.log('Creating payment - checking Stripe initialization...');
         
         // Check if stripe is properly initialized
         if (!stripe) {
@@ -27,8 +30,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             });
         }
 
-        console.log('Fetching booking details for ID:', bookingId);
-
         // Get booking details from database
         const booking = await database.getDocument(
             import.meta.env.VITE_APPWRITE_DATABASE_ID!,
@@ -43,8 +44,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             });
         }
 
-        console.log('Original amount (USD):', amount);
-
         // Convert USD to INR if currency is INR
         let finalAmount = amount;
         let displayCurrency = currency;
@@ -54,14 +53,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             console.log('Converted amount (INR):', finalAmount);
         }
 
-        console.log('Creating Stripe checkout session...');
-        
         const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:5174';
         const successUrl = `${baseUrl}/payment-success?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`;
         const cancelUrl = `${baseUrl}/payment/${bookingId}`;
-        
-        console.log('Success URL:', successUrl);
-        console.log('Cancel URL:', cancelUrl);
 
         // Convert amount to paise for INR or cents for USD (minimum ₹1 or $1)
         const priceAmount = Math.max(Math.round(finalAmount * 100), 100);
@@ -93,8 +87,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 ...metadata
             },
         });
-
-        console.log('Stripe session created successfully:', session.id);
 
         return new Response(JSON.stringify({ 
             sessionId: session.id, 
