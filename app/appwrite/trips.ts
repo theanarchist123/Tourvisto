@@ -56,6 +56,7 @@ export const getTripById = async (tripId: string) => {
         }
         
         return null;
+    }
 }
 
 export const updateTripById = async (tripId: string, updatedData: any) => {
