@@ -22,6 +22,7 @@ export default [
     layout('routes/root/page-layout.tsx', [
         index('routes/root/travel-page.tsx'),
         route('/travel/:tripId', 'routes/root/travel-detail.tsx'),
+        route('/my-bookings', 'routes/root/my-bookings.tsx'),
         route('/book-trip/:tripId', 'routes/root/book-trip.tsx'),
         route('/payment/:bookingId', 'routes/root/payment.tsx'),
         route('/ticket/:bookingId', 'routes/root/ticket.$bookingId.tsx'),

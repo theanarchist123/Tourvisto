@@ -29,6 +29,12 @@ const RootNavbar = () => {
                         </Link>
                     )}
 
+                    {user?.$id && (
+                        <Link to="/my-bookings" className={cn('text-base font-normal text-white mr-4', {"text-dark-100": location.pathname.startsWith('/travel')})}>
+                            My Bookings
+                        </Link>
+                    )}
+
                     {user?.imageUrl ? (
                         <img 
                             src={user.imageUrl} 
