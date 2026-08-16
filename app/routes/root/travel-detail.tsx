@@ -123,7 +123,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
         return (
             <main className="travel-detail pt-40 wrapper text-center min-h-screen">
                 <h1 className="p-40-semibold text-dark-100">Trip not found</h1>
-                <Link to="/" className="text-primary mt-4 inline-block">Go back to home</Link>
+                <Link to="/" className="text-primary-500 mt-4 inline-block">Go back to home</Link>
             </main>
         )
     }
@@ -345,7 +345,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                             {itinerary?.map((dayPlan: any, dIndex: number) => (
                                 <div key={dIndex} className="bg-white border border-light-300/80 rounded-2xl p-6 shadow-xs">
                                     <div className="flex items-center gap-3 mb-4 pb-3 border-b border-light-100">
-                                        <span className="bg-primary text-white font-bold px-3 py-1 rounded-lg text-sm">
+                                        <span className="bg-primary-500 text-white font-bold px-3 py-1 rounded-lg text-sm">
                                             Day {dayPlan.day}
                                         </span>
                                         <h3 className="text-lg font-bold text-dark-100">{dayPlan.location}</h3>
@@ -395,7 +395,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                                     </div>
                                                                     <button 
                                                                         onClick={() => setEditingActivity(null)}
-                                                                        className="text-xs font-bold text-primary hover:underline px-2 cursor-pointer"
+                                                                        className="text-xs font-bold text-primary-500 hover:underline px-2 cursor-pointer"
                                                                     >
                                                                         Done
                                                                     </button>
@@ -408,7 +408,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                                 </p>
                                                                 <button 
                                                                     onClick={() => setEditingActivity(key)}
-                                                                    className="opacity-60 group-hover:opacity-100 transition-opacity p-2 bg-white border border-light-300 hover:bg-primary hover:text-white rounded-lg flex-shrink-0 shadow-2xs cursor-pointer"
+                                                                    className="opacity-60 group-hover:opacity-100 transition-opacity p-2 bg-white border border-light-300 hover:bg-primary-500 hover:text-white rounded-lg flex-shrink-0 shadow-2xs cursor-pointer"
                                                                     title="Edit Activity with AI"
                                                                 >
                                                                     ✏️
@@ -436,7 +436,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                 <ul className="flex flex-col gap-2">
                                     {section.items?.map((item: string) => (
                                         <li key={item} className="text-sm text-gray-100 flex items-start gap-2">
-                                            <span className="text-primary font-bold">•</span>
+                                            <span className="text-primary-500 font-bold">•</span>
                                             <span>{item}</span>
                                         </li>
                                     ))}
@@ -488,7 +488,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                     <div key={i} className="bg-light-200 p-4 rounded-xl border border-light-100 flex flex-col gap-2">
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                                <div className="w-7 h-7 rounded-full bg-primary-50 flex items-center justify-center text-primary-500 font-bold text-xs">
                                                     {r.userName?.charAt(0)?.toUpperCase() || 'T'}
                                                 </div>
                                                 <span className="font-semibold text-sm text-dark-100">{r.userName}</span>
@@ -515,7 +515,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                     <button
                                         type="button"
                                         onClick={loginWithGoogle}
-                                        className="flex items-center gap-1.5 text-xs text-primary bg-white px-2.5 py-1 rounded-full border border-light-300 hover:bg-light-300 transition-colors cursor-pointer font-medium"
+                                        className="flex items-center gap-1.5 text-xs text-primary-500 bg-white px-2.5 py-1 rounded-full border border-light-300 hover:bg-light-300 transition-colors cursor-pointer font-medium"
                                     >
                                         <img src="/assets/icons/google.svg" alt="google" className="size-3.5" />
                                         <span>Sign in for verified badge</span>
@@ -533,7 +533,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                                 onClick={() => setVibe(v)}
                                                 className={cn(
                                                     "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer",
-                                                    vibe === v ? "bg-primary text-white border-primary shadow-xs" : "bg-white text-dark-400 border-light-300 hover:bg-light-300"
+                                                    vibe === v ? "bg-primary-500 text-white border-primary-500 shadow-xs" : "bg-white text-dark-400 border-light-300 hover:bg-light-300"
                                                 )}
                                             >
                                                 {v}
@@ -543,7 +543,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                 </div>
                                 <div>
                                     <textarea 
-                                        className="w-full bg-white border border-light-300 rounded-xl p-3.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-dark-200 text-sm min-h-[90px]"
+                                        className="w-full bg-white border border-light-300 rounded-xl p-3.5 outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all text-dark-200 text-sm min-h-[90px]"
                                         placeholder="Share your experience (e.g., Best local foods, secret viewpoint, sunset timing, activity highlights)..."
                                         value={comment}
                                         onChange={e => setComment(e.target.value)}
@@ -554,7 +554,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                     <button 
                                         type="submit" 
                                         disabled={isSubmittingReview || !comment.trim()}
-                                        className="bg-primary text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                                        className="bg-primary-500 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-primary-500/90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                                     >
                                         {isSubmittingReview ? 'Posting...' : 'Post Vibe Check'}
                                     </button>
@@ -570,7 +570,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                         <div className="flex justify-between items-start">
                             <div>
                                 <span className="text-xs font-bold uppercase tracking-wider text-gray-100">Total Price</span>
-                                <h2 className="text-3xl font-black text-primary mt-1">{formatConvertedPrice()}</h2>
+                                <h2 className="text-3xl font-black text-primary-500 mt-1">{formatConvertedPrice()}</h2>
                             </div>
                             <span className="bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-2.5 py-1 rounded-full">
                                 Instant Booking
@@ -589,7 +589,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                                         className={cn(
                                             "py-1.5 text-xs font-bold rounded-lg transition-all text-center",
                                             selectedCurrency === curr
-                                                ? "bg-white text-primary shadow-xs"
+                                                ? "bg-white text-primary-500 shadow-xs"
                                                 : "text-gray-100 hover:text-dark-200"
                                         )}
                                     >
@@ -616,7 +616,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
 
                         <button 
                             onClick={handleBookNow}
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-2xl transition-all shadow-md hover:shadow-lg text-center cursor-pointer text-base"
+                            className="w-full bg-primary-500 hover:bg-primary-500/90 text-white font-bold py-3.5 rounded-2xl transition-all shadow-md hover:shadow-lg text-center cursor-pointer text-base"
                         >
                             Book This Trip Now ✈️
                         </button>
@@ -660,7 +660,7 @@ const TravelDetail = ({ loaderData }: Route.ComponentProps) => {
                     <button 
                         onClick={handleSaveTrip}
                         disabled={isSaving}
-                        className="bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-primary/90 transition-all disabled:opacity-50 cursor-pointer"
+                        className="bg-primary-500 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-primary-500/90 transition-all disabled:opacity-50 cursor-pointer"
                     >
                         {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
