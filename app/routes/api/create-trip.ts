@@ -74,14 +74,31 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         ]
         }`;
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
-            generationConfig: {
-                responseMimeType: "application/json",
-            },
-        });
+        const flashModels = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash"];
+        let textResult = null;
 
-        const textResult = await model.generateContent([prompt]);
+        for (const modelName of flashModels) {
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                    },
+                });
+                textResult = await model.generateContent([prompt]);
+                if (textResult) break;
+            } catch (err: any) {
+                console.warn(`Model ${modelName} failed, trying next model...`, err?.message);
+            }
+        }
+
+        if (!textResult) {
+            return new Response(
+                JSON.stringify({ error: "Failed to generate content from Gemini Flash models." }),
+                { status: 500, headers: { "Content-Type": "application/json" } }
+            );
+        }
+
         const responseText = textResult.response.text();
 
         const trip = parseMarkdownToJson(responseText);
