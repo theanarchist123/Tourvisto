@@ -3,7 +3,8 @@ import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {cn, parseTripData} from "~/lib/utils";
 import {Header, TripCard} from "../../../components";
 import {getAllTrips} from "~/appwrite/trips";
-import {getPublicTrips} from "~/appwrite/public-trips";
+import {getPublicTrips, getAllPublicTrips} from "~/appwrite/public-trips";
+import {travelStyles, budgetOptions} from "~/appwrite/../constants/index";
 import type {Route} from "../../../.react-router/types/app/routes/admin/+types/trips";
 import {useState} from "react";
 import {getUser} from "~/appwrite/auth";
@@ -38,34 +39,73 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const limit = 8;
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || "1", 10);
-    const offset = (page - 1) * limit;
+    const searchQuery = url.searchParams.get('q')?.toLowerCase() || "";
+    const filterStyle = url.searchParams.get('style') || "";
+    const filterBudget = url.searchParams.get('budget') || "";
+    
+    const hasFilters = searchQuery || filterStyle || filterBudget;
+    
+    let user = null;
+    try { user = await getUser(); } catch (e) {}
 
-    const [user, { allTrips, total } ] = await Promise.all([
-        getUser().catch(() => null), // Make user optional - return null if not authenticated
-        getPublicTrips(limit, offset), // Use public trips instead
-    ])
-
-    return {
-        trips: allTrips.map(({ $id, tripDetail, imageUrls }) => ({
+    if (hasFilters) {
+        const allTripsDocs = await getAllPublicTrips(100);
+        
+        let parsedTrips = allTripsDocs.map(({ $id, tripDetail, imageUrls }) => ({
             id: $id,
             ...parseTripData(tripDetail),
             imageUrls: imageUrls ?? []
-        })),
-        total
+        }));
+        
+        if (searchQuery) {
+            parsedTrips = parsedTrips.filter(t => 
+                t.name?.toLowerCase().includes(searchQuery) || 
+                t.destination?.toLowerCase().includes(searchQuery) ||
+                t.country?.toLowerCase().includes(searchQuery)
+            );
+        }
+        if (filterStyle) {
+            parsedTrips = parsedTrips.filter(t => t.travelStyle === filterStyle);
+        }
+        if (filterBudget) {
+            parsedTrips = parsedTrips.filter(t => t.budget === filterBudget);
+        }
+        
+        const total = parsedTrips.length;
+        const offset = (page - 1) * limit;
+        const paginatedTrips = parsedTrips.slice(offset, offset + limit);
+        
+        return { trips: paginatedTrips, total, q: searchQuery, style: filterStyle, budget: filterBudget };
+    } else {
+        const offset = (page - 1) * limit;
+        const { allTrips, total } = await getPublicTrips(limit, offset);
+        
+        return {
+            trips: allTrips.map(({ $id, tripDetail, imageUrls }) => ({
+                id: $id,
+                ...parseTripData(tripDetail),
+                imageUrls: imageUrls ?? []
+            })),
+            total,
+            q: "", style: "", budget: ""
+        };
     }
 }
 
 const TravelPage = ({ loaderData }: Route.ComponentProps) => {
     const trips = loaderData.trips as Trip[] | [];
+    const { q, style, budget } = loaderData as any;
 
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const initialPage = Number(searchParams.get('page') || '1')
 
     const [currentPage, setCurrentPage] = useState(initialPage);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        window.location.search = `?page=${page}`
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', page.toString());
+        setSearchParams(newParams);
     }
 
     return (
@@ -152,7 +192,29 @@ const TravelPage = ({ loaderData }: Route.ComponentProps) => {
             </section>
 
             <section id="trips" className="py-20 wrapper flex flex-col gap-10">
-                <Header title="Handpicked Trips" description="Browse well-planned trips designes for your travel style" />
+                <Header title="Handpicked Trips" description="Browse well-planned trips designed for your travel style" />
+
+                <form className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        defaultValue={q}
+                        placeholder="Search destinations..." 
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-primary"
+                    />
+                    <select name="style" defaultValue={style} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-primary">
+                        <option value="">All Styles</option>
+                        {travelStyles.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <select name="budget" defaultValue={budget} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-primary">
+                        <option value="">All Budgets</option>
+                        {budgetOptions.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                    <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg font-medium">Search</button>
+                    {(q || style || budget) && (
+                        <Link to="/" className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium text-center self-center">Clear</Link>
+                    )}
+                </form>
 
                 <div className="trip-grid">
                     {trips.map((trip) => (

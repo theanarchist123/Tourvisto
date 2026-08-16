@@ -41,6 +41,21 @@ export const getPublicTrips = async (limit: number, offset: number) => {
     }
 };
 
+export const getAllPublicTrips = async (limit: number = 100) => {
+    try {
+        const allTrips = await publicDatabase.listDocuments(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            import.meta.env.VITE_APPWRITE_TRIPS_COLLECTION_ID,
+            [Query.limit(limit), Query.orderDesc('$createdAt')]
+        );
+
+        return allTrips.documents;
+    } catch (error) {
+        console.error('❌ Error fetching all public trips for filter:', error);
+        return [];
+    }
+};
+
 export const getPublicTripById = async (tripId: string) => {
     console.log('🚀 getPublicTripById called with ID:', tripId);
     try {

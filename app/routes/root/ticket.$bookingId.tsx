@@ -250,12 +250,17 @@ const Ticket = ({ loaderData }: { loaderData: { booking: any } }) => {
                     </div>
 
                     {/* Barcode/QR Code Placeholder */}
-                    <div className="text-center border-t-2 border-dashed border-gray-300 pt-6 mt-6">
-                        <p className="text-sm text-gray-600 mb-2">Boarding Pass Code</p>
-                        <div className="font-mono text-lg font-bold tracking-widest bg-gray-100 px-6 py-4 rounded inline-block border-2 border-gray-300 border-dashed">
-                            SCAN-{travelId}
+                    <div className="text-center border-t-2 border-dashed border-gray-300 pt-6 mt-6 flex flex-col items-center">
+                        <p className="text-sm text-gray-600 mb-4">Boarding Pass Code</p>
+                        <div className="inline-block p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                            <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${travelId}-${booking.flightId}`} 
+                                alt="QR Code" 
+                                className="w-[150px] h-[150px]"
+                            />
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">Present this ticket at the airport</p>
+                        <p className="text-sm font-mono font-bold text-gray-700 mt-3">{travelId}</p>
+                        <p className="text-xs text-gray-500 mt-1">Present this ticket at the airport</p>
                     </div>
 
                     {/* Footer */}
